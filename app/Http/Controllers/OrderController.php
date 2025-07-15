@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\User;
+use App\Models\Travel;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 use App\Notifications\OrderStatusChangedNotification;
+use App\Notifications\TravelAvailableNotification;
 
 class OrderController extends Controller
 {
@@ -39,6 +41,19 @@ class OrderController extends Controller
 
         $order->order_status_id = $newStatus->id;
         $order->save();
+
+        if ($validated['status'] === 'approved') {
+            Travel::create([
+                'order_id' => $order->id,
+                'pickup_address' => '',
+                'delivery_address' => '',
+                'recipient_name' => '',
+                'recipient_email' => '',
+                'recipient_cpf' => '',
+                'is_private_send' => false,
+            ]);
+            $order->user->notify(new TravelAvailableNotification($order));
+        }
 
         if (in_array($validated['status'], ['approved', 'cancelled'])) {
             $order->user->notify(new OrderStatusChangedNotification($order));

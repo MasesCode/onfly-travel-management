@@ -19,6 +19,11 @@ class Order extends Model
 {
     use SoftDeletes;
 
+    public function travel()
+    {
+        return $this->hasOne(Travel::class);
+    }
+
     protected $fillable = [
         'user_id',
         'order_status_id',

@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderStatusController;
-
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TravelController;
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/orders/{orderId}/travel', [TravelController::class, 'store']);
     Route::get('/order-statuses', [OrderStatusController::class, 'index']);
     Route::post('/order-statuses', [OrderStatusController::class, 'store']);
     Route::delete('/order-statuses/{id}', [OrderStatusController::class, 'destroy']);
