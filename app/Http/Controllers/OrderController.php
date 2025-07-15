@@ -1,4 +1,3 @@
-use Symfony\Component\HttpFoundation\Response;
 <?php
 
 namespace App\Http\Controllers;
@@ -11,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
+use App\Notifications\OrderStatusChangedNotification;
 
 class OrderController extends Controller
 {
@@ -39,6 +39,10 @@ class OrderController extends Controller
 
         $order->order_status_id = $newStatus->id;
         $order->save();
+
+        if (in_array($validated['status'], ['approved', 'cancelled'])) {
+            $order->user->notify(new OrderStatusChangedNotification($order));
+        }
 
         activity()
             ->causedBy($user)
