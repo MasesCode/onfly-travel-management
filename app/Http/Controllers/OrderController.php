@@ -1,3 +1,4 @@
+use Symfony\Component\HttpFoundation\Response;
 <?php
 
 namespace App\Http\Controllers;
@@ -8,9 +9,48 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class OrderController extends Controller
 {
+    public function updateStatus(Request $request, int $id): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user->isAdmin()) {
+            return response()->json(['error' => 'Apenas administradores podem alterar o status.'], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($order->user_id === $user->id) {
+            return response()->json(['error' => 'Você não pode alterar o status do seu próprio pedido.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['approved', 'cancelled'])],
+        ]);
+
+        $newStatus = OrderStatus::where('name', $validated['status'])->firstOrFail();
+
+        if ($validated['status'] === 'cancelled' && $order->status->name === 'approved') {
+            return response()->json(['error' => 'Não é possível cancelar um pedido já aprovado.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $order->order_status_id = $newStatus->id;
+        $order->save();
+
+        activity()
+            ->causedBy($user)
+            ->performedOn($order)
+            ->withProperties([
+                'attributes' => $order->toArray(),
+                'new_status' => $validated['status'],
+            ])
+            ->log('Updated order status');
+
+    return response()->json($order, Response::HTTP_OK);
+    }
     public function index(Request $request): JsonResponse
     {
         $query = Order::with(['status', 'user'])
@@ -83,7 +123,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
 
         if ($order->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
         $validated = $request->validate([
@@ -100,7 +140,7 @@ class OrderController extends Controller
             ->withProperties(['attributes' => $order->toArray()])
             ->log('Updated order');
 
-        return response()->json($order);
+    return response()->json($order, Response::HTTP_OK);
     }
 
     public function destroy($id): JsonResponse
@@ -108,8 +148,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
 
         if ($order->user_id !== Auth::id()) {
-
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
         $order->delete();
@@ -120,6 +159,6 @@ class OrderController extends Controller
             ->withProperties(['attributes' => $order->toArray()])
             ->log('Deleted order');
 
-        return response()->json(['message' => 'Order deleted.']);
+    return response()->json(['message' => 'Order deleted.'], Response::HTTP_OK);
     }
 }

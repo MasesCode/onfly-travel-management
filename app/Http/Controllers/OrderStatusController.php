@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class OrderStatusController extends Controller
 {
@@ -30,14 +31,14 @@ class OrderStatusController extends Controller
             ->withProperties(['attributes' => $status->toArray()])
             ->log('Created custom order status');
 
-        return response()->json($status, 201);
+    return response()->json($status, Response::HTTP_CREATED);
     }
 
     public function destroy($id)
     {
         $status = OrderStatus::findOrFail($id);
         if (!$status->is_custom) {
-            return response()->json(['error' => 'Default statuses cannot be deleted.'], 403);
+            return response()->json(['error' => 'Default statuses cannot be deleted.'], Response::HTTP_FORBIDDEN);
         }
 
         $status->delete();
@@ -48,6 +49,6 @@ class OrderStatusController extends Controller
             ->withProperties(['attributes' => $status->toArray()])
             ->log('Deleted custom order status');
 
-        return response()->json(['message' => 'Status deleted.']);
+    return response()->json(['message' => 'Status deleted.'], Response::HTTP_OK);
     }
 }

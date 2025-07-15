@@ -16,4 +16,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+    Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 });
