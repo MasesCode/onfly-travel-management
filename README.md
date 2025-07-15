@@ -1,61 +1,107 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Onfly Travel Management
 
-## About Laravel
+Sistema Full Stack para gestão de pedidos de viagem corporativa, desenvolvido em Laravel (API REST) e Vue.js (frontend, com Breeze e TypeScript).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Sumário
+- [Visão Geral](#visão-geral)
+- [Funcionalidades](#funcionalidades)
+- [Como rodar o projeto](#como-rodar-o-projeto)
+- [Configuração do ambiente](#configuração-do-ambiente)
+- [Testes](#testes)
+- [Documentação das APIs](#documentação-das-apis)
+- [Funcionalidade extra: Viagem (Travel)](#funcionalidade-extra-viagem-travel)
+- [Tecnologias e boas práticas](#tecnologias-e-boas-práticas)
+- [Logs e Auditoria](#logs-e-auditoria)
+- [Contato](#contato)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Visão Geral
+Este projeto permite que empresas gerenciem pedidos de viagem, aprovações, notificações e logística de envio, com autenticação, controle de acesso e rastreabilidade total.
 
-## Learning Laravel
+## Funcionalidades
+- Cadastro, consulta, listagem e atualização de pedidos de viagem
+- Filtros por status, destino e período
+- Aprovação/cancelamento de pedidos (apenas admin)
+- Notificações por e-mail e sistema
+- Cadastro e atualização de viagens (endereços, destinatário, dimensões, etc.)
+- Geração automática de viagem após aprovação do pedido
+- Envio próprio automático após 24h sem agendamento
+- Logs de todas as ações relevantes
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Como rodar o projeto
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1. Instale as dependências
+```bash
+composer install
+npm install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Configure o ambiente
+- Copie `.env.example` para `.env` e ajuste as variáveis (DB, mail, etc.)
+- Gere a key do Laravel:
+```bash
+php artisan key:generate
+```
 
-## Laravel Sponsors
+### 3. Suba com Docker (recomendado)
+```bash
+docker-compose up -d
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 4. Rode as migrations e seeders
+```bash
+php artisan migrate --seed
+```
 
-### Premium Partners
+### 5. Inicie o frontend
+```bash
+npm run dev
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Configuração do ambiente
+- Banco SQLite já configurado para testes rápidos
+- Para e-mail, use Mailtrap ou SMTP real (ajuste no `.env`)
+- Variáveis importantes: `DB_CONNECTION`, `MAIL_MAILER`, `MAIL_HOST`, etc.
 
-## Contributing
+## Testes
+- Testes unitários e de feature no backend:
+```bash
+php artisan test
+```
+- (Opcional) Testes no frontend: `npm run test`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Documentação das APIs
+- Todas as rotas estão protegidas por autenticação Sanctum
+- Veja exemplos de uso e payloads em `docs/viagem.md` para a funcionalidade de viagem
+- Principais endpoints:
+	- `POST /orders` — Cria pedido
+	- `GET /orders` — Lista pedidos (filtros: status, destino, datas)
+	- `PATCH /orders/{id}/status` — Atualiza status (admin)
+	- `POST /orders/{orderId}/travel` — Cria viagem
+	- `PUT /orders/{orderId}/travel` — Atualiza viagem
 
-## Code of Conduct
+## Funcionalidade extra: Viagem (Travel)
+Veja detalhes completos em [`docs/viagem.md`](docs/viagem.md).
+- Permite agendar retirada/entrega após aprovação do pedido
+- Notifica usuário para agendar viagem
+- Marca envio próprio após 24h sem agendamento
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Tecnologias e boas práticas
+- **Backend:** Laravel 10+, PHP 8+, Sanctum, Spatie Activity Log, Notificações
+- **Frontend:** Vue 3, TypeScript, Breeze, Tailwind
+- **Logs:** Todas as ações relevantes são auditadas
+- **Validação:** Tipagem forte no backend e frontend
+- **Docker:** Facilita setup e execução
 
-## Security Vulnerabilities
+## Logs e Auditoria
+- Todas as ações de criação, atualização, deleção e status são logadas (Spatie Activity Log)
+- Logs podem ser consultados para auditoria e rastreabilidade
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Contato
+Dúvidas ou sugestões? Abra uma issue ou envie e-mail para o responsável pelo repositório.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> Projeto desenvolvido para o desafio Onfly. Qualquer funcionalidade extra está documentada neste README e em `docs/viagem.md`.
