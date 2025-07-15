@@ -11,3 +11,9 @@ defineProps<{
         </p>
     </div>
 </template>
+
+<script lang="ts">
+export default {
+    name: 'InputError'
+};
+</script>

@@ -10,3 +10,9 @@ defineProps<{
         <span v-else><slot /></span>
     </label>
 </template>
+
+<script lang="ts">
+export default {
+    name: 'InputLabel'
+};
+</script>

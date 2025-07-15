@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
@@ -24,16 +22,23 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Register" />
+        <Head title="Criar Conta" />
+
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 text-center">Criar Nova Conta</h2>
+            <p class="text-gray-600 text-center mt-2">Preencha os dados abaixo para se registrar</p>
+        </div>
 
         <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="name" value="Name" />
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Nome:
+                </label>
 
                 <TextInput
                     id="name"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     v-model="form.name"
                     required
                     autofocus
@@ -43,13 +48,15 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="email" value="Email" />
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                    Email:
+                </label>
 
                 <TextInput
                     id="email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     v-model="form.email"
                     required
                     autocomplete="username"
@@ -58,13 +65,15 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                    Senha:
+                </label>
 
                 <TextInput
                     id="password"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     v-model="form.password"
                     required
                     autocomplete="new-password"
@@ -73,16 +82,15 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
+            <div class="mb-6">
+                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                    Confirmar Senha:
+                </label>
 
                 <TextInput
                     id="password_confirmation"
                     type="password"
-                    class="mt-1 block w-full"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
@@ -94,21 +102,24 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    :href="route('login')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Already registered?
-                </Link>
-
-                <PrimaryButton
-                    class="ms-4"
+            <div class="mb-6">
+                <button
+                    type="submit"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Register
-                </PrimaryButton>
+                    Criar Conta
+                </button>
+            </div>
+
+            <div class="text-center">
+                <Link
+                    :href="route('login')"
+                    class="text-sm text-blue-500 hover:text-blue-700"
+                >
+                    Já tem uma conta? Faça login
+                </Link>
             </div>
         </form>
     </GuestLayout>

@@ -21,3 +21,9 @@ defineExpose({ focus: () => input.value?.focus() });
         ref="input"
     />
 </template>
+
+<script lang="ts">
+export default {
+    name: 'TextInput'
+};
+</script>
