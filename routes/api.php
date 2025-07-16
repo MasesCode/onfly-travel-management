@@ -11,7 +11,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order-statuses', [OrderStatusController::class, 'store']);
     Route::delete('/order-statuses/{id}', [OrderStatusController::class, 'destroy']);
 
-    // Rotas de pedidos (orders)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);

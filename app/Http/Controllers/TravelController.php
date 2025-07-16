@@ -14,9 +14,11 @@ class TravelController extends Controller
     public function store(Request $request, int $orderId): JsonResponse
     {
         $order = Order::findOrFail($orderId);
+
         if ($order->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
+
         $validated = $request->validate([
             'pickup_address' => 'required|string',
             'delivery_address' => 'required|string',
@@ -28,25 +30,31 @@ class TravelController extends Controller
             'width' => 'nullable|numeric|min:0',
             'length' => 'nullable|numeric|min:0',
         ]);
+
         $travel = Travel::create(array_merge($validated, [
             'order_id' => $order->id,
             'is_private_send' => false
         ]));
+
         activity()
             ->causedBy(Auth::user())
             ->performedOn($travel)
             ->withProperties(['attributes' => $travel->toArray()])
             ->log('Created travel');
+
         return response()->json($travel, Response::HTTP_CREATED);
     }
 
     public function update(Request $request, int $orderId): JsonResponse
     {
         $order = Order::findOrFail($orderId);
+
         if ($order->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
+
         $travel = Travel::where('order_id', $order->id)->firstOrFail();
+
         $validated = $request->validate([
             'pickup_address' => 'sometimes|string',
             'delivery_address' => 'sometimes|string',
@@ -58,7 +66,9 @@ class TravelController extends Controller
             'width' => 'nullable|numeric|min:0',
             'length' => 'nullable|numeric|min:0',
         ]);
+
         $travel->update($validated);
+
         activity()
             ->causedBy(Auth::user())
             ->performedOn($travel)
