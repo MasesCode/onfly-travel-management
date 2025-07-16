@@ -34,8 +34,8 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'departure_date' => 'date',
-        'return_date' => 'date',
+        'departure_date' => 'date:Y-m-d',
+        'return_date' => 'date:Y-m-d',
     ];
 
     public function user(): BelongsTo

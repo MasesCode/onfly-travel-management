@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Travel extends Model
 {
+    protected $table = 'travels';
+
     protected $fillable = [
         'order_id',
         'pickup_address',

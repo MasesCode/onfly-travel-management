@@ -70,10 +70,16 @@ class OrderController extends Controller
 
     return response()->json($order, Response::HTTP_OK);
     }
+
     public function index(Request $request): JsonResponse
     {
-        $query = Order::with(['status', 'user'])
-            ->where('user_id', Auth::id());
+        $user = Auth::user();
+
+        $query = Order::with(['status', 'user']);
+
+        if (!$user->isAdmin()) {
+            $query->where('user_id', Auth::id());
+        }
 
         if ($request->has('status')) {
             $query->whereHas('status', function ($q) use ($request) {
@@ -82,21 +88,41 @@ class OrderController extends Controller
         }
 
         if ($request->has('destination')) {
-            $query->where('destination', $request->destination);
+            $query->where('destination', 'like', '%' . $request->destination . '%');
         }
 
-        if ($request->has('from') && $request->has('to')) {
-            $query->whereBetween('departure_date', [$request->from, $request->to]);
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $query->whereBetween('departure_date', [$request->start_date, $request->end_date]);
         }
 
-        $orders = $query->get();
+        $orders = $query->get()->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'user_id' => $order->user_id,
+                'requester' => $order->user->name,
+                'destination' => $order->destination,
+                'start_date' => $order->departure_date,
+                'end_date' => $order->return_date,
+                'status' => $order->status->name,
+                'notes' => $order->notes ?? '',
+                'created_at' => $order->created_at,
+                'updated_at' => $order->updated_at,
+            ];
+        });
 
         return response()->json($orders);
     }
 
     public function show($id): JsonResponse
     {
-        $order = Order::with(['status', 'user'])->where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $query = Order::with(['status', 'user']);
+
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        $order = $query->findOrFail($id);
 
         return response()->json($order);
     }
@@ -104,9 +130,9 @@ class OrderController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'user_id' => 'sometimes|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
             'destination' => 'required|string',
-            'departure_date' => 'required|date',
+            'departure_date' => 'required|date|after_or_equal:today',
             'return_date' => 'required|date|after_or_equal:departure_date',
         ]);
 
@@ -140,14 +166,15 @@ class OrderController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
         $order = Order::findOrFail($id);
+        $user = Auth::user();
 
-        if ($order->user_id !== Auth::id()) {
+        if ($order->user_id !== $user->id && !$user->isAdmin()) {
             return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
         $validated = $request->validate([
             'destination' => 'sometimes|string',
-            'departure_date' => 'sometimes|date',
+            'departure_date' => 'sometimes|date|after_or_equal:today',
             'return_date' => 'sometimes|date|after_or_equal:departure_date',
         ]);
 
@@ -165,8 +192,9 @@ class OrderController extends Controller
     public function destroy($id): JsonResponse
     {
         $order = Order::findOrFail($id);
+        $user = Auth::user();
 
-        if ($order->user_id !== Auth::id()) {
+        if ($order->user_id !== $user->id && !$user->isAdmin()) {
             return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
