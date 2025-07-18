@@ -13,38 +13,24 @@ class OrderStatusChanged extends Notification
 {
     use Queueable;
 
-    protected $order;
-    protected $oldStatusId;
-    protected $newStatusId;
+    protected Order $order;
+    protected ?int $oldStatusId;
+    protected int $newStatusId;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Order $order, $oldStatusId, $newStatusId)
+    public function __construct(Order $order, mixed $oldStatusId, mixed $newStatusId)
     {
         $this->order = $order;
-        $this->oldStatusId = $oldStatusId;
-        $this->newStatusId = $newStatusId;
+        $this->oldStatusId = is_numeric($oldStatusId) ? (int) $oldStatusId : null;
+        $this->newStatusId = (int) $newStatusId;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['database'];
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
-        // Buscar os nomes dos status
         $newStatus = OrderStatus::find($this->newStatusId);
         $oldStatus = OrderStatus::find($this->oldStatusId);
 

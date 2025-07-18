@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\ApiAuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderStatusController;
-use App\Http\Controllers\TravelController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ActivityLogController;
@@ -28,9 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/order-statuses', [OrderStatusController::class, 'index']);
     Route::post('/order-statuses', [OrderStatusController::class, 'store']);
     Route::delete('/order-statuses/{id}', [OrderStatusController::class, 'destroy']);
-
-    Route::post('/orders/{orderId}/travel', [TravelController::class, 'store']);
-    Route::put('/orders/{orderId}/travel', [TravelController::class, 'update']);
 
     // Rotas de usuários (compatibilidade)
     Route::get('/users', [UserController::class, 'index']);

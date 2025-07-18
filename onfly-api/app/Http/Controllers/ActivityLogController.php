@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Http\JsonResponse;
@@ -10,12 +11,9 @@ class ActivityLogController extends Controller
 {
     private const ACCESS_DENIED_MESSAGE = 'Acesso negado';
 
-    /**
-     * Display a listing of the activity logs.
-     */
     public function index(Request $request): JsonResponse
     {
-        // Verificar se o usuário é admin
+        /** @var User $user */
         $user = $request->user();
         if (!$user || !$user->is_admin) {
             return response()->json(['message' => self::ACCESS_DENIED_MESSAGE], 403);
@@ -24,17 +22,14 @@ class ActivityLogController extends Controller
         $query = Activity::with(['subject', 'causer'])
             ->orderBy('created_at', 'desc');
 
-        // Filtro por tipo de log
         if ($request->has('log_name') && $request->log_name) {
             $query->where('log_name', $request->log_name);
         }
 
-        // Filtro por usuário
         if ($request->has('causer_id') && $request->causer_id) {
             $query->where('causer_id', $request->causer_id);
         }
 
-        // Filtro por data
         if ($request->has('date_from') && $request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -43,18 +38,14 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // Paginação
         $logs = $query->paginate(15);
 
         return response()->json($logs);
     }
 
-    /**
-     * Display the specified activity log.
-     */
     public function show(Request $request, Activity $activity): JsonResponse
     {
-        // Verificar se o usuário é admin
+        /** @var User $user */
         $user = $request->user();
         if (!$user || !$user->is_admin) {
             return response()->json(['message' => self::ACCESS_DENIED_MESSAGE], 403);
@@ -82,12 +73,9 @@ class ActivityLogController extends Controller
         ]);
     }
 
-    /**
-     * Get unique log names for filter
-     */
     public function getLogNames(Request $request): JsonResponse
     {
-        // Verificar se o usuário é admin
+        /** @var User $user */
         $user = $request->user();
         if (!$user || !$user->is_admin) {
             return response()->json(['message' => self::ACCESS_DENIED_MESSAGE], 403);

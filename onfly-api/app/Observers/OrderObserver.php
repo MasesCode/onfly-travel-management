@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
-    /**
-     * Handle the Order "updated" event.
-     */
     public function updated(Order $order): void
     {
         Log::info('OrderObserver::updated called', [
@@ -20,7 +17,6 @@ class OrderObserver
             'is_status_dirty' => $order->isDirty('order_status_id')
         ]);
 
-        // Verifica se o status mudou (campo correto é order_status_id)
         if ($order->isDirty('order_status_id')) {
             $oldStatusId = $order->getOriginal('order_status_id');
             $newStatusId = $order->order_status_id;
@@ -32,7 +28,6 @@ class OrderObserver
                 'user_id' => $order->user_id
             ]);
 
-            // Busca o usuário dono do pedido
             $user = User::find($order->user_id);
 
             if (!$user) {
@@ -40,7 +35,6 @@ class OrderObserver
                 return;
             }
 
-            // Envia notificação com a mudança de status
             $user->notify(new OrderStatusChanged($order, $oldStatusId, $newStatusId));
 
             Log::info('Notification sent from Observer', [

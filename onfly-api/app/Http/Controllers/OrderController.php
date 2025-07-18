@@ -2,40 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\UpdateOrderRequest;
+use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\User;
-use App\Models\Travel;
+use App\Notifications\OrderStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class OrderController extends Controller
 {
-    public function updateStatus(Request $request, int $id): JsonResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, int $id): JsonResponse
     {
         $order = Order::findOrFail($id);
+        /** @var User $user */
         $user = Auth::user();
 
-        // Apenas admins podem alterar status
         if (!$user->isAdmin()) {
             return response()->json(['error' => 'Apenas administradores podem alterar o status de pedidos.'], Response::HTTP_FORBIDDEN);
         }
 
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['approved', 'cancelled'])],
-        ]);
+        $validated = $request->validated();
 
         $newStatus = OrderStatus::where('name', $validated['status'])->firstOrFail();
+        $oldStatusId = $order->order_status_id;
 
-        // Regra: Não é possível cancelar um pedido já aprovado
         if ($validated['status'] === 'cancelled' && $order->status->name === 'approved') {
             return response()->json(['error' => 'Não é possível cancelar um pedido já aprovado.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Regra: Não é possível alterar o status de um pedido já cancelado
         if ($order->status->name === 'cancelled') {
             return response()->json(['error' => 'Não é possível alterar o status de um pedido cancelado.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -43,20 +42,7 @@ class OrderController extends Controller
         $order->order_status_id = $newStatus->id;
         $order->save();
 
-        if ($validated['status'] === 'approved') {
-            Travel::create([
-                'order_id' => $order->id,
-                'pickup_address' => '',
-                'delivery_address' => '',
-                'recipient_name' => '',
-                'recipient_email' => '',
-                'recipient_cpf' => '',
-                'is_private_send' => false,
-            ]);
-            // Notificação de viagem removida - apenas notificação de status via Observer
-        }
-
-        // Notificação de mudança de status agora é enviada pelo Observer
+        $order->user->notify(new OrderStatusChanged($order, $oldStatusId, $newStatus->id));
 
         activity()
             ->causedBy($user)
@@ -67,11 +53,12 @@ class OrderController extends Controller
             ])
             ->log('Updated order status');
 
-    return response()->json($order, Response::HTTP_OK);
+        return response()->json($order, Response::HTTP_OK);
     }
 
     public function index(Request $request): JsonResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $query = Order::with(['status', 'user']);
@@ -94,14 +81,11 @@ class OrderController extends Controller
             $query->whereBetween('departure_date', [$request->start_date, $request->end_date]);
         }
 
-        // Ordenar por data de criação mais recente
         $query->orderBy('created_at', 'desc');
 
-        // Paginação
         $perPage = $request->input('per_page', 10);
         $orders = $query->paginate($perPage);
 
-        // Transformar os dados
         $orders->getCollection()->transform(function ($order) {
             return [
                 'id' => $order->id,
@@ -120,8 +104,9 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    public function show($id): JsonResponse
+    public function show(int $id): JsonResponse
     {
+        /** @var User $user */
         $user = Auth::user();
         $query = Order::with(['status', 'user']);
 
@@ -134,14 +119,9 @@ class OrderController extends Controller
         return response()->json($order);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreOrderRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'destination' => 'required|string',
-            'departure_date' => 'required|date|after_or_equal:today',
-            'return_date' => 'required|date|after_or_equal:departure_date',
-        ]);
+        $validated = $request->validated();
 
         $userId = $validated['user_id'] ?? Auth::id();
         $user = User::findOrFail($userId);
@@ -170,33 +150,25 @@ class OrderController extends Controller
         return response()->json($order, 201);
     }
 
-    public function update(Request $request, $id): JsonResponse
+    public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
         $order = Order::findOrFail($id);
+        /** @var User $user */
         $user = Auth::user();
 
-        // Regras de permissão:
-        // 1. Apenas admin pode editar qualquer pedido
-        // 2. Usuário comum só pode editar seus próprios pedidos
         if (!$user->isAdmin() && $order->user_id !== $user->id) {
             return response()->json(['error' => 'Você só pode editar seus próprios pedidos.'], Response::HTTP_FORBIDDEN);
         }
 
-        // Usuários comuns não podem alterar pedidos aprovados
         if (!$user->isAdmin() && $order->status->name === 'approved') {
             return response()->json(['error' => 'Não é possível editar um pedido já aprovado.'], Response::HTTP_FORBIDDEN);
         }
 
-        // Pedidos cancelados não podem ser editados por ninguém
-        if ($order->status->name === 'cancelled') {
+        if (!$user->isAdmin() && $order->status->name === 'cancelled') {
             return response()->json(['error' => 'Não é possível editar um pedido cancelado.'], Response::HTTP_FORBIDDEN);
         }
 
-        $validated = $request->validate([
-            'destination' => 'sometimes|string',
-            'departure_date' => 'sometimes|date|after_or_equal:today',
-            'return_date' => 'sometimes|date|after_or_equal:departure_date',
-        ]);
+        $validated = $request->validated();
 
         $order->update($validated);
 
@@ -206,12 +178,13 @@ class OrderController extends Controller
             ->withProperties(['attributes' => $order->toArray()])
             ->log('Updated order');
 
-    return response()->json($order, Response::HTTP_OK);
+        return response()->json($order, Response::HTTP_OK);
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
         $order = Order::findOrFail($id);
+        /** @var User $user */
         $user = Auth::user();
 
         if ($order->user_id !== $user->id && !$user->isAdmin()) {
@@ -226,6 +199,6 @@ class OrderController extends Controller
             ->withProperties(['attributes' => $order->toArray()])
             ->log('Deleted order');
 
-    return response()->json(['message' => 'Order deleted.'], Response::HTTP_OK);
+        return response()->json(['message' => 'Pedido excluído com sucesso.'], Response::HTTP_OK);
     }
 }

@@ -2,28 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-/**
- * @property int $id
- * @property int $user_id
- * @property int $order_status_id
- * @property string $requester_name
- * @property string $destination
- * @property string $departure_date
- * @property string $return_date
- */
 class Order extends Model
 {
-    use SoftDeletes;
-
-    public function travel()
-    {
-        return $this->hasOne(Travel::class);
-    }
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -39,7 +26,6 @@ class Order extends Model
         'return_date' => 'date:Y-m-d',
     ];
 
-    // Acessores virtuais para compatibilidade com o frontend
     protected $appends = ['start_date', 'end_date', 'requester', 'notes'];
 
     public function user(): BelongsTo
@@ -52,23 +38,20 @@ class Order extends Model
         return $this->belongsTo(OrderStatus::class, 'order_status_id');
     }
 
-    // Acessor para start_date (alias para departure_date)
     protected function startDate(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->departure_date,
+            get: fn () => $this->departure_date?->format('Y-m-d'),
         );
     }
 
-    // Acessor para end_date (alias para return_date)
     protected function endDate(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->return_date,
+            get: fn () => $this->return_date?->format('Y-m-d'),
         );
     }
 
-    // Acessor para requester (alias para requester_name)
     protected function requester(): Attribute
     {
         return Attribute::make(
@@ -76,7 +59,6 @@ class Order extends Model
         );
     }
 
-    // Acessor para notes (campo virtual por enquanto)
     protected function notes(): Attribute
     {
         return Attribute::make(

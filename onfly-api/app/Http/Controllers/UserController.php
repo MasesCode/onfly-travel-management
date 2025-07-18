@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\DestroyUserRequest;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
         if (!$user->is_admin) {
@@ -34,7 +37,12 @@ class UserController extends Controller
             $query->where('is_admin', $request->boolean('is_admin'));
         }
 
-        $users = $query->orderBy('created_at', 'desc')->get()->map(function ($user) {
+        $query->orderBy('created_at', 'desc');
+
+        $perPage = $request->input('per_page', 10);
+        $users = $query->paginate($perPage);
+
+        $users->getCollection()->transform(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -48,20 +56,12 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreUserRequest $request): JsonResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->is_admin) {
-            return response()->json(['error' => 'Acesso negado. Apenas administradores podem criar usuários.'], Response::HTTP_FORBIDDEN);
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'is_admin' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         $newUser = User::create([
             'name' => $validated['name'],
@@ -79,22 +79,14 @@ class UserController extends Controller
         return response()->json($newUser, Response::HTTP_CREATED);
     }
 
-    public function update(Request $request, $id): JsonResponse
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
+        /** @var User $currentUser */
         $currentUser = Auth::user();
-
-        if (!$currentUser->is_admin) {
-            return response()->json(['error' => 'Acesso negado. Apenas administradores podem editar usuários.'], Response::HTTP_FORBIDDEN);
-        }
 
         $user = User::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => 'sometimes|string|min:8',
-            'is_admin' => 'sometimes|boolean',
-        ]);
+        $validated = $request->validated();
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -111,13 +103,10 @@ class UserController extends Controller
         return response()->json($user, Response::HTTP_OK);
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy(DestroyUserRequest $request, int $id): JsonResponse
     {
+        /** @var User $currentUser */
         $currentUser = Auth::user();
-
-        if (!$currentUser->is_admin) {
-            return response()->json(['error' => 'Acesso negado. Apenas administradores podem excluir usuários.'], Response::HTTP_FORBIDDEN);
-        }
 
         $user = User::findOrFail($id);
 
