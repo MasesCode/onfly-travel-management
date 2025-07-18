@@ -20,6 +20,17 @@ class OrderSeeder extends Seeder
         $statusApproved = OrderStatus::where('name', 'approved')->first();
         $statusCancelled = OrderStatus::where('name', 'cancelled')->first();
 
+        // Se não existirem, criar os status
+        if (!$statusRequested) {
+            $statusRequested = OrderStatus::create(['name' => 'requested', 'is_custom' => false]);
+        }
+        if (!$statusApproved) {
+            $statusApproved = OrderStatus::create(['name' => 'approved', 'is_custom' => false]);
+        }
+        if (!$statusCancelled) {
+            $statusCancelled = OrderStatus::create(['name' => 'cancelled', 'is_custom' => false]);
+        }
+
         // Buscar ou criar alguns usuários para os pedidos
         $user1 = User::firstOrCreate(
             ['email' => 'joao@example.com'],
@@ -51,14 +62,14 @@ class OrderSeeder extends Seeder
         // Limpar pedidos existentes (para poder reexecutar o seeder)
         Order::truncate();
 
-        // Criar pedidos de exemplo
+        // Criar pedidos de exemplo com datas recentes
         Order::create([
             'user_id' => $user1->id,
             'order_status_id' => $statusRequested->id,
             'requester_name' => $user1->name,
             'destination' => 'São Paulo, SP',
-            'departure_date' => '2024-02-15',
-            'return_date' => '2024-02-18',
+            'departure_date' => '2025-08-15',
+            'return_date' => '2025-08-18',
         ]);
 
         Order::create([
@@ -66,8 +77,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusApproved->id,
             'requester_name' => $user1->name,
             'destination' => 'Rio de Janeiro, RJ',
-            'departure_date' => '2024-03-10',
-            'return_date' => '2024-03-12',
+            'departure_date' => '2025-07-10',
+            'return_date' => '2025-07-12',
         ]);
 
         Order::create([
@@ -75,8 +86,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusRequested->id,
             'requester_name' => $user2->name,
             'destination' => 'Belo Horizonte, MG',
-            'departure_date' => '2024-02-20',
-            'return_date' => '2024-02-22',
+            'departure_date' => '2025-08-20',
+            'return_date' => '2025-08-22',
         ]);
 
         Order::create([
@@ -84,8 +95,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusApproved->id,
             'requester_name' => $user2->name,
             'destination' => 'Salvador, BA',
-            'departure_date' => '2024-04-05',
-            'return_date' => '2024-04-08',
+            'departure_date' => '2025-09-05',
+            'return_date' => '2025-09-08',
         ]);
 
         Order::create([
@@ -93,8 +104,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusCancelled->id,
             'requester_name' => $user3->name,
             'destination' => 'Porto Alegre, RS',
-            'departure_date' => '2024-01-25',
-            'return_date' => '2024-01-27',
+            'departure_date' => '2025-06-25',
+            'return_date' => '2025-06-27',
         ]);
 
         Order::create([
@@ -102,8 +113,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusRequested->id,
             'requester_name' => $user3->name,
             'destination' => 'Brasília, DF',
-            'departure_date' => '2024-03-15',
-            'return_date' => '2024-03-17',
+            'departure_date' => '2025-08-15',
+            'return_date' => '2025-08-17',
         ]);
 
         Order::create([
@@ -111,8 +122,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusApproved->id,
             'requester_name' => $user1->name,
             'destination' => 'Recife, PE',
-            'departure_date' => '2024-05-10',
-            'return_date' => '2024-05-13',
+            'departure_date' => '2025-09-10',
+            'return_date' => '2025-09-13',
         ]);
 
         Order::create([
@@ -120,8 +131,8 @@ class OrderSeeder extends Seeder
             'order_status_id' => $statusRequested->id,
             'requester_name' => $user2->name,
             'destination' => 'Curitiba, PR',
-            'departure_date' => '2024-02-28',
-            'return_date' => '2024-03-02',
+            'departure_date' => '2025-07-28',
+            'return_date' => '2025-08-02',
         ]);
     }
 }

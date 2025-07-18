@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Order;
 use App\Models\Travel;
-use App\Notifications\TravelAvailableNotification;
 use Carbon\Carbon;
 
 class CheckPrivateSendTravels extends Command
@@ -32,8 +31,9 @@ class CheckPrivateSendTravels extends Command
                 'recipient_cpf' => '',
                 'is_private_send' => true,
             ]);
-            $order->user->notify(new TravelAvailableNotification($order));
+            // Notificação de viagem removida
         }
+
         return Command::SUCCESS;
     }
 }

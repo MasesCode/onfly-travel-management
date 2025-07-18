@@ -11,8 +11,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
-use App\Notifications\OrderStatusChangedNotification;
-use App\Notifications\TravelAvailableNotification;
 
 class OrderController extends Controller
 {
@@ -21,12 +19,9 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $user = Auth::user();
 
+        // Apenas admins podem alterar status
         if (!$user->isAdmin()) {
-            return response()->json(['error' => 'Apenas administradores podem alterar o status.'], Response::HTTP_FORBIDDEN);
-        }
-
-        if ($order->user_id === $user->id) {
-            return response()->json(['error' => 'Você não pode alterar o status do seu próprio pedido.'], Response::HTTP_FORBIDDEN);
+            return response()->json(['error' => 'Apenas administradores podem alterar o status de pedidos.'], Response::HTTP_FORBIDDEN);
         }
 
         $validated = $request->validate([
@@ -35,8 +30,14 @@ class OrderController extends Controller
 
         $newStatus = OrderStatus::where('name', $validated['status'])->firstOrFail();
 
+        // Regra: Não é possível cancelar um pedido já aprovado
         if ($validated['status'] === 'cancelled' && $order->status->name === 'approved') {
             return response()->json(['error' => 'Não é possível cancelar um pedido já aprovado.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // Regra: Não é possível alterar o status de um pedido já cancelado
+        if ($order->status->name === 'cancelled') {
+            return response()->json(['error' => 'Não é possível alterar o status de um pedido cancelado.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $order->order_status_id = $newStatus->id;
@@ -52,12 +53,10 @@ class OrderController extends Controller
                 'recipient_cpf' => '',
                 'is_private_send' => false,
             ]);
-            $order->user->notify(new TravelAvailableNotification($order));
+            // Notificação de viagem removida - apenas notificação de status via Observer
         }
 
-        if (in_array($validated['status'], ['approved', 'cancelled'])) {
-            $order->user->notify(new OrderStatusChangedNotification($order));
-        }
+        // Notificação de mudança de status agora é enviada pelo Observer
 
         activity()
             ->causedBy($user)
@@ -168,8 +167,21 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $user = Auth::user();
 
-        if ($order->user_id !== $user->id && !$user->isAdmin()) {
-            return response()->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        // Regras de permissão:
+        // 1. Apenas admin pode editar qualquer pedido
+        // 2. Usuário comum só pode editar seus próprios pedidos
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
+            return response()->json(['error' => 'Você só pode editar seus próprios pedidos.'], Response::HTTP_FORBIDDEN);
+        }
+
+        // Usuários comuns não podem alterar pedidos aprovados
+        if (!$user->isAdmin() && $order->status->name === 'approved') {
+            return response()->json(['error' => 'Não é possível editar um pedido já aprovado.'], Response::HTTP_FORBIDDEN);
+        }
+
+        // Pedidos cancelados não podem ser editados por ninguém
+        if ($order->status->name === 'cancelled') {
+            return response()->json(['error' => 'Não é possível editar um pedido cancelado.'], Response::HTTP_FORBIDDEN);
         }
 
         $validated = $request->validate([
