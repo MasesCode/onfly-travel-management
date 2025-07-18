@@ -158,10 +158,12 @@ import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import CreateOrderModal from '@/components/orders/CreateOrderModal.vue';
 import api from '@/services/api';
 import type { Order } from '../types/index';
+import { useNotifications } from '../composables/useNotifications';
 
 const orders = ref<Order[]>([]);
 const loading = ref(false);
 const showCreateModal = ref(false);
+const { showSuccess, showError } = useNotifications();
 
 const fetchOrders = async () => {
   loading.value = true;
@@ -170,6 +172,7 @@ const fetchOrders = async () => {
     orders.value = response.data.data || response.data;
   } catch (error) {
     console.error('Erro ao carregar pedidos:', error);
+    showError(error, 'Erro ao carregar pedidos');
   } finally {
     loading.value = false;
   }
@@ -189,9 +192,11 @@ const handleOrderCreated = async (orderData: { destination: string; start_date: 
     
     await api.post('/orders', backendData);
     showCreateModal.value = false;
-    fetchOrders();
+    await fetchOrders();
+    showSuccess('Pedido criado com sucesso!');
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
+    showError(error, 'Erro ao criar pedido');
   }
 };
 

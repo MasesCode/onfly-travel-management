@@ -36,7 +36,6 @@ export const useApiNotifications = () => {
       if (response.ok) {
         const data = await response.json()
         notifications.value = data.data || []
-        console.log('Notificações atualizadas:', notifications.value.length)
       } else {
         console.error('Erro ao buscar notificações:', response.statusText)
       }

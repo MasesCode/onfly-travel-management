@@ -382,6 +382,7 @@ import AuthenticatedLayout from '../layouts/AuthenticatedLayout.vue'
 import UserModal from '../components/admin/UserModal.vue'
 import DeleteUserModal from '../components/admin/DeleteUserModal.vue'
 import api from '../services/api'
+import { useNotifications } from '../composables/useNotifications'
 
 interface User {
   id: number
@@ -402,6 +403,7 @@ interface UserFormData {
 
 // Stores
 const authStore = useAuthStore()
+const { showSuccess, showError } = useNotifications()
 
 // Estado
 const users = ref<User[]>([])
@@ -445,11 +447,21 @@ const filteredUsers = computed(() => {
 const loadUsers = async () => {
   try {
     loading.value = true
+    console.log('Iniciando carregamento de usuários...')
     const response = await api.get('/admin/users')
-    users.value = response.data.users || response.data
+    console.log('Resposta da API:', response.data)
+    
+    // Verificar se a resposta tem dados paginados
+    if (response.data.data) {
+      users.value = response.data.data
+      console.log('Usuários carregados (paginados):', users.value)
+    } else {
+      users.value = response.data
+      console.log('Usuários carregados (direto):', users.value)
+    }
   } catch (error) {
     console.error('Erro ao carregar usuários:', error)
-    // Aqui você pode adicionar uma notificação de erro
+    showError(error, 'Erro ao carregar usuários')
   } finally {
     loading.value = false
   }
@@ -517,17 +529,21 @@ const handleUserSubmit = async (userData: UserFormData) => {
       if (index !== -1) {
         users.value[index] = updatedUser
       }
+      
+      showSuccess('Usuário atualizado com sucesso!')
     } else {
       // Criar usuário
       const response = await api.post('/admin/users', userData)
       const newUser = response.data.user || response.data
       users.value.unshift(newUser)
+      
+      showSuccess('Usuário criado com sucesso!')
     }
 
     closeUserModal()
   } catch (error) {
     console.error('Erro ao salvar usuário:', error)
-    // Aqui você pode adicionar uma notificação de erro
+    showError(error, 'Erro ao salvar usuário')
   }
 }
 
@@ -540,9 +556,10 @@ const confirmDelete = async () => {
 
     users.value = users.value.filter(u => u.id !== userToDelete.value!.id)
     closeDeleteModal()
+    showSuccess('Usuário deletado com sucesso!')
   } catch (error) {
     console.error('Erro ao deletar usuário:', error)
-    // Aqui você pode adicionar uma notificação de erro
+    showError(error, 'Erro ao deletar usuário')
   } finally {
     deleteLoading.value = false
   }

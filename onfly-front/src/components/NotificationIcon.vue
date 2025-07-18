@@ -264,7 +264,7 @@ const initializeNotifications = async () => {
     loading.value = true
     const token = localStorage.getItem('auth_token')
 
-    const response = await fetch('/api/notifications', {
+    const response = await fetch('http://localhost:8000/api/notifications', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -272,8 +272,32 @@ const initializeNotifications = async () => {
     })
 
     if (response.ok) {
-      const data = await response.json()
-      notifications.value = data.data || []
+      const apiResponse = await response.json()
+      console.log('Dados da API:', apiResponse)
+      
+      // Transformar dados da API para o formato esperado pelo frontend
+      const transformedNotifications = (apiResponse.data || []).map((notification: any) => ({
+        id: notification.id,
+        type: notification.type || 'info',
+        title: notification.title || notification.data?.title || 'Notificação',
+        message: notification.message || notification.data?.message || 'Nova notificação',
+        read: !!notification.read_at,
+        deleted: false,
+        created_at: notification.created_at,
+        order_id: notification.data?.order_id,
+        destination: notification.data?.destination
+      }))
+      
+      console.log('Notificações transformadas:', transformedNotifications)
+      
+      // Remover duplicatas baseadas no ID
+      const uniqueNotifications = transformedNotifications.filter((notification: any, index: number, self: any[]) => 
+        index === self.findIndex(n => n.id === notification.id)
+      )
+      
+      console.log('Notificações após remoção de duplicatas:', uniqueNotifications)
+      
+      notifications.value = uniqueNotifications
       saveNotificationsToStorage(notifications.value)
     } else {
       console.error('Erro ao carregar notificações:', response.statusText)
@@ -319,8 +343,6 @@ onUnmounted(() => document.removeEventListener('keydown', closeOnEscape))
 
 // Métodos
 const toggleDropdown = async () => {
-  console.log('Toggle dropdown:', !isOpen.value)
-
   // Se estiver fechando o dropdown, apenas muda o estado
   if (isOpen.value) {
     isOpen.value = false
@@ -333,7 +355,6 @@ const toggleDropdown = async () => {
 }
 
 const close = () => {
-  console.log('Fechando dropdown')
   isOpen.value = false
 }
 
@@ -344,7 +365,7 @@ const markRead = async (id: string) => {
     saveNotificationsToStorage(notifications.value)
 
     try {
-      await fetch(`/api/notifications/${id}/read`, {
+      await fetch(`http://localhost:8000/api/notifications/${id}/read`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -362,7 +383,7 @@ const markAllRead = async () => {
   saveNotificationsToStorage(notifications.value)
 
   try {
-    await fetch('/api/notifications/mark-all-read', {
+    await fetch('http://localhost:8000/api/notifications/mark-all-read', {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -395,7 +416,7 @@ const confirmClearNotifications = async () => {
   close()
 
   try {
-    await fetch('/api/notifications', {
+    await fetch('http://localhost:8000/api/notifications', {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
