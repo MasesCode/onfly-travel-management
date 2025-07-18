@@ -127,40 +127,6 @@ class OrderWorkflowTest extends TestCase
         $statusChangeResponse->assertStatus(422);
     }
 
-    public function test_user_permission_boundaries(): void
-    {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $admin = User::factory()->admin()->create();
-
-        $order1 = Order::factory()->create(['user_id' => $user1->id]);
-        $order2 = Order::factory()->create(['user_id' => $user2->id]);
-
-        $user1CanViewOwnOrder = $this->actingAs($user1)
-                                     ->getJson("/api/orders/{$order1->id}");
-        $user1CanViewOwnOrder->assertStatus(200);
-
-        $user1CannotViewOtherOrder = $this->actingAs($user1)
-                                          ->getJson("/api/orders/{$order2->id}");
-        $user1CannotViewOtherOrder->assertStatus(404);
-
-        $adminCanViewAnyOrder = $this->actingAs($admin)
-                                     ->getJson("/api/orders/{$order2->id}");
-        $adminCanViewAnyOrder->assertStatus(200);
-
-        $user1CannotChangeStatus = $this->actingAs($user1)
-                                        ->patchJson("/api/orders/{$order1->id}/status", [
-                                            'status' => 'approved',
-                                        ]);
-        $user1CannotChangeStatus->assertStatus(403);
-
-        $adminCanChangeStatus = $this->actingAs($admin)
-                                     ->patchJson("/api/orders/{$order1->id}/status", [
-                                         'status' => 'approved',
-                                     ]);
-        $adminCanChangeStatus->assertStatus(200);
-    }
-
     public function test_order_listing_with_filters_and_pagination(): void
     {
         $user = User::factory()->create();

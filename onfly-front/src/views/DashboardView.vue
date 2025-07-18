@@ -189,7 +189,7 @@ const handleOrderCreated = async (orderData: { destination: string; start_date: 
       departure_date: orderData.start_date,
       return_date: orderData.end_date
     }
-    
+
     await api.post('/orders', backendData);
     showCreateModal.value = false;
     await fetchOrders();

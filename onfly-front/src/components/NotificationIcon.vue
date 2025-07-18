@@ -274,7 +274,7 @@ const initializeNotifications = async () => {
     if (response.ok) {
       const apiResponse = await response.json()
       console.log('Dados da API:', apiResponse)
-      
+
       // Transformar dados da API para o formato esperado pelo frontend
       const transformedNotifications = (apiResponse.data || []).map((notification: any) => ({
         id: notification.id,
@@ -287,16 +287,16 @@ const initializeNotifications = async () => {
         order_id: notification.data?.order_id,
         destination: notification.data?.destination
       }))
-      
+
       console.log('Notificações transformadas:', transformedNotifications)
-      
+
       // Remover duplicatas baseadas no ID
-      const uniqueNotifications = transformedNotifications.filter((notification: any, index: number, self: any[]) => 
+      const uniqueNotifications = transformedNotifications.filter((notification: any, index: number, self: any[]) =>
         index === self.findIndex(n => n.id === notification.id)
       )
-      
+
       console.log('Notificações após remoção de duplicatas:', uniqueNotifications)
-      
+
       notifications.value = uniqueNotifications
       saveNotificationsToStorage(notifications.value)
     } else {

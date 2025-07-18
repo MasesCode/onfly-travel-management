@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  # Banco de dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: onfly-db-prod
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - onfly-network
+    restart: unless-stopped
+
+  # Backend Laravel
+  backend:
+    build:
+      context: ./onfly-api
+      dockerfile: Dockerfile.prod
+    container_name: onfly-backend-prod
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - db
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - onfly-network
+    restart: unless-stopped
+
+  # Frontend Vue.js
+  frontend:
+    build:
+      context: ./onfly-front
+      dockerfile: Dockerfile.prod
+    container_name: onfly-frontend-prod
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - backend
+    networks:
+      - onfly-network
+    restart: unless-stopped
+
+  # Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: onfly-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - frontend_dist:/var/www/frontend
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - onfly-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  storage_data:
+  frontend_dist:
+
+networks:
+  onfly-network:
+    driver: bridge
