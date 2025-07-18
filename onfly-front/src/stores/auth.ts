@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/services/api'
-import type { User, LoginCredentials, RegisterData } from '@/types'
+import type { User, LoginCredentials } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -29,21 +29,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(data: RegisterData) {
-    try {
-      const response = await api.post('/register', data)
-      const { user: userData, token: authToken } = response.data
+  async function register(name: string, email: string, password: string, password_confirmation: string) {
+    const response = await api.post('/register', {
+      name,
+      email,
+      password,
+      password_confirmation
+    })
+    const { user: userData, token: authToken } = response.data
 
-      user.value = userData
-      token.value = authToken
-      localStorage.setItem('auth_token', authToken)
+    user.value = userData
+    token.value = authToken
+    localStorage.setItem('auth_token', authToken)
+    isInitialized.value = true
 
-      return { success: true }
-    } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } }
-      const message = axiosError.response?.data?.message || 'Erro ao criar conta'
-      return { success: false, message }
-    }
+    return { success: true }
   }
 
   async function logout() {

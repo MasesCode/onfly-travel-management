@@ -26,7 +26,7 @@
                     </svg>
                   </div>
                 </div>
-                <div class="ml-5 w-0 flex-1">
+                <div class="flex-1 w-0 ml-5">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Total de Pedidos</dt>
                     <dd class="text-4xl font-bold text-gray-900">{{ orders.length }}</dd>
@@ -47,7 +47,7 @@
                     </svg>
                   </div>
                 </div>
-                <div class="ml-5 w-0 flex-1">
+                <div class="flex-1 w-0 ml-5">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Pedidos Aprovados</dt>
                     <dd class="text-4xl font-bold text-gray-900">{{ orders.filter(o => o.status === 'approved').length }}</dd>
@@ -68,7 +68,7 @@
                     </svg>
                   </div>
                 </div>
-                <div class="ml-5 w-0 flex-1">
+                <div class="flex-1 w-0 ml-5">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Pedidos Pendentes</dt>
                     <dd class="text-4xl font-bold text-gray-900">{{ orders.filter(o => o.status === 'requested').length }}</dd>
@@ -89,7 +89,7 @@
                     </svg>
                   </div>
                 </div>
-                <div class="ml-5 w-0 flex-1">
+                <div class="flex-1 w-0 ml-5">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Pedidos Cancelados</dt>
                     <dd class="text-4xl font-bold text-gray-900">{{ orders.filter(o => o.status === 'cancelled').length }}</dd>
@@ -103,7 +103,7 @@
         <!-- Cards de Ações Rápidas -->
         <div class="grid grid-cols-1 gap-8 mt-12 md:grid-cols-2">
           <!-- Novo Pedido -->
-          <div class="p-8 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div class="p-8 transition-shadow duration-300 bg-white rounded-lg shadow-lg hover:shadow-xl">
             <div class="text-center">
               <div class="flex items-center justify-center w-16 h-16 mx-auto bg-blue-100 rounded-full">
                 <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +122,7 @@
           </div>
 
           <!-- Ver Pedidos -->
-          <div class="p-8 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div class="p-8 transition-shadow duration-300 bg-white rounded-lg shadow-lg hover:shadow-xl">
             <div class="text-center">
               <div class="flex items-center justify-center w-16 h-16 mx-auto bg-green-100 rounded-full">
                 <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,8 +144,8 @@
     </div>
 
     <!-- Modal de Criação de Pedido -->
-    <CreateOrderModal 
-      :show="showCreateModal" 
+    <CreateOrderModal
+      :show="showCreateModal"
       @close="showCreateModal = false"
       @created="handleOrderCreated"
     />
@@ -181,9 +181,15 @@ const openCreateModal = () => {
 
 const handleOrderCreated = async (orderData: { destination: string; start_date: string; end_date: string }) => {
   try {
-    await api.post('/orders', orderData);
+    const backendData = {
+      destination: orderData.destination,
+      departure_date: orderData.start_date,
+      return_date: orderData.end_date
+    }
+    
+    await api.post('/orders', backendData);
     showCreateModal.value = false;
-    fetchOrders(); // Atualiza a lista de pedidos
+    fetchOrders();
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
   }

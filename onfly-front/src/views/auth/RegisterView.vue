@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useNotifications } from '@/composables/useNotifications'
-import GuestLayout from '@/layouts/GuestLayout.vue'
-import TextInput from '@/components/TextInput.vue'
-import InputError from '@/components/InputError.vue'
+import { useAuthStore } from '../../stores/auth'
+import { useNotifications } from '../../composables/useNotifications'
+import GuestLayout from '../../layouts/GuestLayout.vue'
+import TextInput from '../../components/TextInput.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { showError } = useNotifications()
+const { showError, showSuccess } = useNotifications()
 
 const isSubmitting = ref(false)
 
@@ -21,46 +20,88 @@ const form = reactive({
   password_confirmation: ''
 })
 
-const errors = ref<Record<string, string[]>>({})
-
 // Função de registro
-async function handleRegister() {
+const handleRegister = async () => {
   if (isSubmitting.value) return
 
+  // Validação básica
+  if (!form.name || !form.email || !form.password || !form.password_confirmation) {
+    showError('Por favor, preencha todos os campos obrigatórios.')
+    return
+  }
+
+  if (form.password !== form.password_confirmation) {
+    showError('As senhas não coincidem.')
+    return
+  }
+
+  if (form.password.length < 8) {
+    showError('A senha deve ter pelo menos 8 caracteres.')
+    return
+  }
+
   isSubmitting.value = true
-  errors.value = {}
 
   try {
-    const result = await authStore.register({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      password_confirmation: form.password_confirmation
-    })
-
-    if (result.success) {
-      // Registro bem-sucedido, redirecionar para dashboard
-      router.push('/dashboard')
-    } else {
-      showError(result.message || 'Erro ao criar conta')
-    }
+    await authStore.register(form.name, form.email, form.password, form.password_confirmation)
+    showSuccess('Conta criada com sucesso! Bem-vindo(a) ao onfly!')
+    router.push('/dashboard')
   } catch (error: unknown) {
-    const axiosError = error as {
-      response?: {
-        status?: number
-        data?: {
-          errors?: Record<string, string[]>
-          message?: string
-        }
-      }
+    console.error('Erro no registro:', error)
+    
+    // Tratar erros específicos do Laravel
+    const axiosError = error as { 
+      response?: { 
+        status?: number; 
+        data?: { 
+          errors?: Record<string, string[]>; 
+          message?: string 
+        } 
+      }; 
+      code?: string 
     }
-
-    if (axiosError.response?.status === 422) {
-      // Erros de validação
-      errors.value = axiosError.response.data?.errors || {}
+    
+    if (axiosError?.response?.status === 422) {
+      // Erro de validação (422)
+      const errorData = axiosError.response.data
+      
+      if (errorData?.errors) {
+        // Pegar o primeiro erro de validação
+        const firstFieldErrors = Object.values(errorData.errors)[0] as string[]
+        const errorMessage = firstFieldErrors[0]
+        
+        // Traduzir mensagem específica do email
+        if (errorMessage.includes('The email has already been taken')) {
+          showError('Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.')
+        } else if (errorMessage.includes('password confirmation does not match')) {
+          showError('A confirmação da senha não confere com a senha digitada.')
+        } else if (errorMessage.includes('password must be at least 8 characters')) {
+          showError('A senha deve ter pelo menos 8 caracteres.')
+        } else {
+          showError(errorMessage)
+        }
+      } else if (errorData?.message) {
+        showError(errorData.message)
+      } else {
+        showError('Dados inválidos. Verifique os campos e tente novamente.')
+      }
+    } else if (axiosError?.response?.data?.message) {
+      // Outras mensagens de erro do servidor
+      const message = axiosError.response.data.message
+      if (message.includes('email') && (message.includes('taken') || message.includes('exists'))) {
+        showError('Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.')
+      } else {
+        showError(message)
+      }
+    } else if (axiosError?.response?.status && axiosError.response.status >= 500) {
+      // Erro interno do servidor
+      showError('Erro interno do servidor. Tente novamente em alguns minutos.')
+    } else if (axiosError?.code === 'NETWORK_ERROR' || !axiosError?.response) {
+      // Erro de rede
+      showError('Erro de conexão. Verifique sua internet e tente novamente.')
     } else {
-      const message = axiosError.response?.data?.message || 'Erro ao criar conta'
-      showError(message)
+      // Erro genérico
+      showError('Erro ao criar conta. Verifique os dados e tente novamente.')
     }
   } finally {
     isSubmitting.value = false
@@ -77,7 +118,7 @@ async function handleRegister() {
         Já tem uma conta?
         <router-link
           to="/login"
-          class="font-medium text-blue-600 hover:text-blue-500 transition duration-150 ease-in-out"
+          class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-500"
         >
           Faça login
         </router-link>
@@ -88,7 +129,7 @@ async function handleRegister() {
     <form @submit.prevent="handleRegister" class="space-y-4">
       <!-- Nome -->
       <div>
-        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="name" class="block mb-1 text-sm font-medium text-gray-700">
           Nome Completo
         </label>
         <TextInput
@@ -97,15 +138,14 @@ async function handleRegister() {
           type="text"
           required
           autofocus
-          autocomplete="name"
+          autocomplete="given-name"
           placeholder="Digite seu nome completo"
         />
-        <InputError v-if="errors.name" :message="errors.name[0]" class="mt-2" />
       </div>
 
       <!-- Email -->
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="email" class="block mb-1 text-sm font-medium text-gray-700">
           Email
         </label>
         <TextInput
@@ -113,15 +153,14 @@ async function handleRegister() {
           v-model="form.email"
           type="email"
           required
-          autocomplete="username"
+          autocomplete="email"
           placeholder="Digite seu email"
         />
-        <InputError v-if="errors.email" :message="errors.email[0]" class="mt-2" />
       </div>
 
       <!-- Senha -->
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="password" class="block mb-1 text-sm font-medium text-gray-700">
           Senha
         </label>
         <TextInput
@@ -132,12 +171,11 @@ async function handleRegister() {
           autocomplete="new-password"
           placeholder="Digite sua senha"
         />
-        <InputError v-if="errors.password" :message="errors.password[0]" class="mt-2" />
       </div>
 
       <!-- Confirmar Senha -->
       <div>
-        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="password_confirmation" class="block mb-1 text-sm font-medium text-gray-700">
           Confirmar Senha
         </label>
         <TextInput
@@ -148,7 +186,6 @@ async function handleRegister() {
           autocomplete="new-password"
           placeholder="Confirme sua senha"
         />
-        <InputError v-if="errors.password_confirmation" :message="errors.password_confirmation[0]" class="mt-2" />
       </div>
 
       <!-- Botão de Registro -->
@@ -156,11 +193,11 @@ async function handleRegister() {
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+          class="flex justify-center w-full px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
             v-if="isSubmitting"
-            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            class="w-5 h-5 mr-3 -ml-1 text-white animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

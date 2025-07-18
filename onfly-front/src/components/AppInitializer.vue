@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import NotificationToast from './NotificationToast.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -37,5 +38,9 @@ onMounted(async () => {
       <p class="mt-4 text-sm text-gray-600">Verificando autenticação...</p>
     </div>
   </div>
-  <router-view v-else />
+  <div v-else>
+    <router-view />
+    <!-- Componente de notificações global -->
+    <NotificationToast />
+  </div>
 </template>

@@ -154,6 +154,31 @@ export class ErrorHandler {
       'regex': `${fieldName} tem formato inválido.`
     };
 
+    // Traduzir mensagens específicas do Laravel
+    if (message.includes('The email has already been taken')) {
+      return 'Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.';
+    }
+
+    if (message.includes('The password confirmation does not match')) {
+      return 'A confirmação da senha não confere com a senha digitada.';
+    }
+
+    if (message.includes('The password must be at least 8 characters')) {
+      return 'A senha deve ter pelo menos 8 caracteres.';
+    }
+
+    if (message.includes('The name field is required')) {
+      return 'O campo Nome é obrigatório.';
+    }
+
+    if (message.includes('The email field is required')) {
+      return 'O campo E-mail é obrigatório.';
+    }
+
+    if (message.includes('The password field is required')) {
+      return 'O campo Senha é obrigatório.';
+    }
+
     for (const [pattern, translation] of Object.entries(translations)) {
       if (message.toLowerCase().includes(pattern)) {
         return translation;

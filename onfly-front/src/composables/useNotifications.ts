@@ -46,6 +46,17 @@ export function useNotifications() {
   };
 
   const showError = (error: unknown, title = 'Erro') => {
+    // Se é uma string, usar diretamente
+    if (typeof error === 'string') {
+      return addNotification({
+        type: 'error',
+        title,
+        message: error,
+        duration: error.length > 50 ? 8000 : 6000
+      });
+    }
+
+    // Se é um objeto de erro, usar o ErrorHandler
     const { message, validationErrors } = ErrorHandler.handleError(error);
 
     // Duração maior para mensagens de erro para dar tempo de ler

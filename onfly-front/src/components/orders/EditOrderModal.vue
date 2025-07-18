@@ -114,6 +114,29 @@
                   <span v-if="errors.end_date" class="text-sm text-red-600">{{ errors.end_date }}</span>
                 </div>
 
+                <!-- Status (apenas para admin) -->
+                <div v-if="authStore.isAdmin">
+                  <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    v-model="form.status"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  >
+                    <option value="requested">Solicitado</option>
+                    <option value="approved" :disabled="props.order?.status === 'cancelled'">Aprovado</option>
+                    <option value="cancelled" :disabled="props.order?.status === 'approved'">Cancelado</option>
+                  </select>
+                  <span v-if="errors.status" class="text-sm text-red-600">{{ errors.status }}</span>
+                  <div v-if="props.order?.status === 'approved'" class="mt-1 text-xs text-gray-500">
+                    Pedidos aprovados não podem ser cancelados
+                  </div>
+                  <div v-if="props.order?.status === 'cancelled'" class="mt-1 text-xs text-gray-500">
+                    Pedidos cancelados não podem ter o status alterado
+                  </div>
+                </div>
+
                 <!-- Aviso se não pode editar -->
                 <div v-if="!canEdit" class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                   <div class="flex">
@@ -159,11 +182,14 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { Order } from '../../types/index'
+import { useAuthStore } from '../../stores/auth'
+import api from '../../services/api'
 
 interface OrderFormData {
   destination: string
   start_date: string
   end_date: string
+  status?: string
 }
 
 interface Props {
@@ -179,19 +205,22 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const authStore = useAuthStore()
 const isVisible = ref(false)
 const isLoading = ref(false)
 
 const form = reactive({
   destination: '',
   start_date: '',
-  end_date: ''
+  end_date: '',
+  status: ''
 })
 
 const errors = reactive({
   destination: '',
   start_date: '',
-  end_date: ''
+  end_date: '',
+  status: ''
 })
 
 const statusLabels: Record<string, string> = {
@@ -206,9 +235,20 @@ const statusColors: Record<string, string> = {
   'cancelled': 'bg-red-100 text-red-800'
 }
 
-// Verificar se pode editar (apenas se status for 'requested')
+// Verificar se pode editar
+// Admin pode editar qualquer pedido exceto cancelados
+// Usuário comum só pode editar seus próprios pedidos com status 'requested'
 const canEdit = computed(() => {
-  return props.order?.status === 'requested'
+  if (!props.order) return false
+  
+  // Pedidos cancelados não podem ser editados por ninguém
+  if (props.order.status === 'cancelled') return false
+  
+  // Admin pode editar qualquer pedido (exceto cancelados)
+  if (authStore.isAdmin) return true
+  
+  // Usuário comum só pode editar seus próprios pedidos com status 'requested'
+  return props.order.status === 'requested' && props.order.user_id === authStore.user?.id
 })
 
 // Converter data para formato YYYY-MM-DD (para input date)
@@ -224,10 +264,12 @@ const resetForm = () => {
     form.destination = props.order.destination
     form.start_date = formatDateForInput(props.order.start_date)
     form.end_date = formatDateForInput(props.order.end_date)
+    form.status = props.order.status
   } else {
     form.destination = ''
     form.start_date = ''
     form.end_date = ''
+    form.status = ''
   }
   clearErrors()
 }
@@ -236,6 +278,7 @@ const clearErrors = () => {
   errors.destination = ''
   errors.start_date = ''
   errors.end_date = ''
+  errors.status = ''
 }
 
 // Validar formulário
@@ -274,6 +317,14 @@ const submitForm = async () => {
 
   try {
     const orderData = { ...form }
+    
+    // Se o admin alterou o status, fazer chamada específica para alterar status
+    if (authStore.isAdmin && form.status !== props.order?.status) {
+      await api.patch(`/orders/${props.order?.id}/status`, {
+        status: form.status
+      })
+    }
+    
     emit('updated', orderData)
   } finally {
     isLoading.value = false

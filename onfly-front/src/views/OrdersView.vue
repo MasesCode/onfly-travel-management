@@ -6,7 +6,7 @@ import EditOrderModal from '../components/orders/EditOrderModal.vue'
 import DeleteOrderModal from '../components/orders/DeleteOrderModal.vue'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import api from '@/services/api'
+import api from '../services/api'
 import type { Order } from '../types/index'
 
 const orders = ref<Order[]>([])
@@ -93,14 +93,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
-const formatCurrency = (value: number | string) => {
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(num)
-}
-
 const editOrder = (order: Order) => {
   selectedOrder.value = order
   showEditModal.value = true
@@ -113,7 +105,14 @@ const deleteOrder = (order: Order) => {
 
 const handleOrderCreated = async (orderData: { destination: string; start_date: string; end_date: string }) => {
   try {
-    await api.post('/orders', orderData)
+    // Converter os campos para os nomes esperados pelo backend
+    const backendData = {
+      destination: orderData.destination,
+      departure_date: orderData.start_date,
+      return_date: orderData.end_date
+    }
+    
+    await api.post('/orders', backendData)
     showCreateModal.value = false
     await fetchOrders()
     // Atualizar notificações se necessário
@@ -126,7 +125,14 @@ const handleOrderUpdated = async (orderData: { destination: string; start_date: 
   if (!selectedOrder.value) return
   
   try {
-    await api.put(`/orders/${selectedOrder.value.id}`, orderData)
+    // Converter os campos para os nomes esperados pelo backend
+    const backendData = {
+      destination: orderData.destination,
+      departure_date: orderData.start_date,
+      return_date: orderData.end_date
+    }
+    
+    await api.put(`/orders/${selectedOrder.value.id}`, backendData)
     showEditModal.value = false
     selectedOrder.value = null
     await fetchOrders()
@@ -281,8 +287,9 @@ onMounted(async () => {
           <div class="p-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
               <div>
-                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <label for="status-filter" class="block text-sm font-medium text-gray-700">Status</label>
                 <select
+                  id="status-filter"
                   v-model="filters.status"
                   @change="applyFilters"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -295,8 +302,9 @@ onMounted(async () => {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700">Destino</label>
+                <label for="destination-filter" class="block text-sm font-medium text-gray-700">Destino</label>
                 <input
+                  id="destination-filter"
                   v-model="filters.destination"
                   @input="applyFilters"
                   type="text"
@@ -306,8 +314,9 @@ onMounted(async () => {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700">Data Início (de)</label>
+                <label for="start-date-filter" class="block text-sm font-medium text-gray-700">Data Início (de)</label>
                 <input
+                  id="start-date-filter"
                   v-model="filters.startDate"
                   @change="applyFilters"
                   type="date"
@@ -316,8 +325,9 @@ onMounted(async () => {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700">Data Fim (até)</label>
+                <label for="end-date-filter" class="block text-sm font-medium text-gray-700">Data Fim (até)</label>
                 <input
+                  id="end-date-filter"
                   v-model="filters.endDate"
                   @change="applyFilters"
                   type="date"
