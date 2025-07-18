@@ -94,7 +94,15 @@ class OrderController extends Controller
             $query->whereBetween('departure_date', [$request->start_date, $request->end_date]);
         }
 
-        $orders = $query->get()->map(function ($order) {
+        // Ordenar por data de criação mais recente
+        $query->orderBy('created_at', 'desc');
+
+        // Paginação
+        $perPage = $request->input('per_page', 10);
+        $orders = $query->paginate($perPage);
+
+        // Transformar os dados
+        $orders->getCollection()->transform(function ($order) {
             return [
                 'id' => $order->id,
                 'user_id' => $order->user_id,

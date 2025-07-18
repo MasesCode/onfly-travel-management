@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue'
 import CreateOrderModal from '../components/orders/CreateOrderModal.vue'
 import EditOrderModal from '../components/orders/EditOrderModal.vue'
@@ -9,6 +9,16 @@ import autoTable from 'jspdf-autotable'
 import api from '../services/api'
 import type { Order } from '../types/index'
 
+interface PaginationData {
+  current_page: number
+  data: Order[]
+  from: number
+  last_page: number
+  per_page: number
+  to: number
+  total: number
+}
+
 const orders = ref<Order[]>([])
 const allOrders = ref<Order[]>([])
 const loading = ref(false)
@@ -17,6 +27,14 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedOrder = ref<Order | null>(null)
 const deleteLoading = ref(false)
+
+// Paginação
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalOrders = ref(0)
+const perPage = ref(10)
+const fromItem = ref(0)
+const toItem = ref(0)
 
 // Filtros
 const filters = ref({
@@ -38,12 +56,41 @@ const statusColors: Record<string, string> = {
   'cancelled': 'bg-red-100 text-red-800'
 }
 
-const fetchOrders = async () => {
+const fetchOrders = async (page: number = 1) => {
   loading.value = true
   try {
-    const response = await api.get('/orders')
-    allOrders.value = response.data.data || response.data
-    applyFilters()
+    const params = new URLSearchParams({
+      page: page.toString(),
+      per_page: perPage.value.toString()
+    })
+
+    // Adicionar filtros apenas se tiverem valor
+    if (filters.value.status) {
+      params.append('status', filters.value.status)
+    }
+    if (filters.value.destination) {
+      params.append('destination', filters.value.destination)
+    }
+    if (filters.value.startDate) {
+      params.append('start_date', filters.value.startDate)
+    }
+    if (filters.value.endDate) {
+      params.append('end_date', filters.value.endDate)
+    }
+
+    const response = await api.get(`/orders?${params}`)
+    const paginationData: PaginationData = response.data
+
+    orders.value = paginationData.data
+    currentPage.value = paginationData.current_page
+    totalPages.value = paginationData.last_page
+    totalOrders.value = paginationData.total
+    fromItem.value = paginationData.from || 0
+    toItem.value = paginationData.to || 0
+
+    // Para manter compatibilidade com o PDF export, vamos buscar todos os pedidos filtrados
+    // apenas quando necessário (na função de exportação)
+    allOrders.value = orders.value
   } catch (error) {
     console.error('Erro ao carregar pedidos:', error)
   } finally {
@@ -52,31 +99,9 @@ const fetchOrders = async () => {
 }
 
 const applyFilters = () => {
-  let filtered = [...allOrders.value]
-
-  if (filters.value.status) {
-    filtered = filtered.filter(order => order.status === filters.value.status)
-  }
-
-  if (filters.value.destination) {
-    filtered = filtered.filter(order => 
-      order.destination.toLowerCase().includes(filters.value.destination.toLowerCase())
-    )
-  }
-
-  if (filters.value.startDate) {
-    filtered = filtered.filter(order => 
-      new Date(order.start_date) >= new Date(filters.value.startDate)
-    )
-  }
-
-  if (filters.value.endDate) {
-    filtered = filtered.filter(order => 
-      new Date(order.end_date) <= new Date(filters.value.endDate)
-    )
-  }
-
-  orders.value = filtered
+  // Resetar para a primeira página quando aplicar filtros
+  currentPage.value = 1
+  fetchOrders(1)
 }
 
 const clearFilters = () => {
@@ -88,6 +113,51 @@ const clearFilters = () => {
   }
   applyFilters()
 }
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    fetchOrders(page)
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    goToPage(currentPage.value + 1)
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    goToPage(currentPage.value - 1)
+  }
+}
+
+// Computed para gerar array de páginas para navegação
+const pageNumbers = computed(() => {
+  const delta = 2
+  const range = []
+  const rangeWithDots = []
+
+  for (let i = Math.max(2, currentPage.value - delta); i <= Math.min(totalPages.value - 1, currentPage.value + delta); i++) {
+    range.push(i)
+  }
+
+  if (currentPage.value - delta > 2) {
+    rangeWithDots.push(1, '...')
+  } else {
+    rangeWithDots.push(1)
+  }
+
+  rangeWithDots.push(...range)
+
+  if (currentPage.value + delta < totalPages.value - 1) {
+    rangeWithDots.push('...', totalPages.value)
+  } else {
+    rangeWithDots.push(totalPages.value)
+  }
+
+  return rangeWithDots.filter((item, index, array) => array.indexOf(item) === index && item !== 1 || index === 0)
+})
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR')
@@ -111,7 +181,7 @@ const handleOrderCreated = async (orderData: { destination: string; start_date: 
       departure_date: orderData.start_date,
       return_date: orderData.end_date
     }
-    
+
     await api.post('/orders', backendData)
     showCreateModal.value = false
     await fetchOrders()
@@ -123,7 +193,7 @@ const handleOrderCreated = async (orderData: { destination: string; start_date: 
 
 const handleOrderUpdated = async (orderData: { destination: string; start_date: string; end_date: string }) => {
   if (!selectedOrder.value) return
-  
+
   try {
     // Converter os campos para os nomes esperados pelo backend
     const backendData = {
@@ -131,7 +201,7 @@ const handleOrderUpdated = async (orderData: { destination: string; start_date: 
       departure_date: orderData.start_date,
       return_date: orderData.end_date
     }
-    
+
     await api.put(`/orders/${selectedOrder.value.id}`, backendData)
     showEditModal.value = false
     selectedOrder.value = null
@@ -144,7 +214,7 @@ const handleOrderUpdated = async (orderData: { destination: string; start_date: 
 
 const handleOrderDeleted = async () => {
   if (!selectedOrder.value) return
-  
+
   deleteLoading.value = true
   try {
     await api.delete(`/orders/${selectedOrder.value.id}`)
@@ -161,46 +231,46 @@ const handleOrderDeleted = async () => {
 
 const exportToPDF = () => {
   const doc = new jsPDF()
-  
+
   // Configuração da fonte
   doc.setFont('helvetica')
-  
+
   // Cabeçalho do documento
   doc.setFontSize(20)
   doc.text('Relatório de Pedidos de Viagem', 20, 20)
-  
+
   // Informações do filtro
   doc.setFontSize(10)
   let yPosition = 40
-  
+
   doc.text('Filtros aplicados:', 20, yPosition)
   yPosition += 7
-  
+
   if (filters.value.status) {
     doc.text(`• Status: ${statusLabels[filters.value.status]}`, 25, yPosition)
     yPosition += 5
   }
-  
+
   if (filters.value.destination) {
     doc.text(`• Destino: ${filters.value.destination}`, 25, yPosition)
     yPosition += 5
   }
-  
+
   if (filters.value.startDate) {
     doc.text(`• Data início: ${formatDate(filters.value.startDate)}`, 25, yPosition)
     yPosition += 5
   }
-  
+
   if (filters.value.endDate) {
     doc.text(`• Data fim: ${formatDate(filters.value.endDate)}`, 25, yPosition)
     yPosition += 5
   }
-  
+
   // Resumo
   doc.setFontSize(12)
   yPosition += 10
   doc.text(`Total de pedidos: ${orders.value.length}`, 20, yPosition)
-  
+
   // Tabela com os dados
   const tableData = orders.value.map(order => [
     `#${order.id}`,
@@ -208,7 +278,7 @@ const exportToPDF = () => {
     `${formatDate(order.start_date)} - ${formatDate(order.end_date)}`,
     statusLabels[order.status]
   ])
-  
+
   autoTable(doc, {
     head: [['ID', 'Destino', 'Período', 'Status']],
     body: tableData,
@@ -227,7 +297,7 @@ const exportToPDF = () => {
     },
     margin: { top: 20, right: 20, bottom: 20, left: 20 }
   })
-  
+
   // Rodapé
   const pageCount = doc.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
@@ -245,14 +315,14 @@ const exportToPDF = () => {
       { align: 'right' }
     )
   }
-  
+
   // Download do PDF
   const fileName = `pedidos-viagem-${new Date().toISOString().split('T')[0]}.pdf`
   doc.save(fileName)
 }
 
 onMounted(async () => {
-  await fetchOrders()
+  await fetchOrders(1)
 })
 </script>
 
@@ -347,7 +417,7 @@ onMounted(async () => {
                 </svg>
                 Exportar PDF
               </button>
-              
+
               <button
                 @click="clearFilters"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
@@ -363,7 +433,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-blue-700">
-                Mostrando <span class="font-semibold">{{ orders.length }}</span> de <span class="font-semibold">{{ allOrders.length }}</span> pedidos
+                Mostrando <span class="font-semibold">{{ fromItem }}</span> a <span class="font-semibold">{{ toItem }}</span> de <span class="font-semibold">{{ totalOrders }}</span> pedidos
               </p>
             </div>
           </div>
@@ -438,29 +508,105 @@ onMounted(async () => {
             </table>
           </div>
         </div>
+
+        <!-- Paginação -->
+        <div v-if="totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow mt-4">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Próxima
+            </button>
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Mostrando <span class="font-medium">{{ fromItem }}</span> a <span class="font-medium">{{ toItem }}</span> de
+                <span class="font-medium">{{ totalOrders }}</span> resultados
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  @click="prevPage"
+                  :disabled="currentPage === 1"
+                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span class="sr-only">Anterior</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+
+                <template v-for="page in pageNumbers">
+                  <button
+                    v-if="page !== '...'"
+                    :key="`page-${page}`"
+                    @click="goToPage(page)"
+                    :class="[
+                      page === currentPage
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 z-10'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                      'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                    ]"
+                  >
+                    {{ page }}
+                  </button>
+                  <span
+                    v-else
+                    :key="`dots-${page}`"
+                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                  >
+                    ...
+                  </span>
+                </template>
+
+                <button
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span class="sr-only">Próxima</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Modais -->
-    <CreateOrderModal 
-      :show="showCreateModal" 
-      @close="showCreateModal = false" 
-      @created="handleOrderCreated" 
+    <CreateOrderModal
+      :show="showCreateModal"
+      @close="showCreateModal = false"
+      @created="handleOrderCreated"
     />
 
-    <EditOrderModal 
-      :show="showEditModal" 
+    <EditOrderModal
+      :show="showEditModal"
       :order="selectedOrder"
-      @close="showEditModal = false" 
-      @updated="handleOrderUpdated" 
+      @close="showEditModal = false"
+      @updated="handleOrderUpdated"
     />
 
-    <DeleteOrderModal 
-      :show="showDeleteModal" 
+    <DeleteOrderModal
+      :show="showDeleteModal"
       :order="selectedOrder"
       :is-loading="deleteLoading"
-      @close="showDeleteModal = false" 
-      @confirm="handleOrderDeleted" 
+      @close="showDeleteModal = false"
+      @confirm="handleOrderDeleted"
     />
   </AuthenticatedLayout>
 </template>

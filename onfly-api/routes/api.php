@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderStatusController;
 use App\Http\Controllers\TravelController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ActivityLogController;
 
 Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/register', [ApiAuthController::class, 'register']);
@@ -43,6 +44,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+        // Rotas de logs de atividade (apenas para admin)
+        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/{activity}', [ActivityLogController::class, 'show']);
+        Route::get('/activity-logs-names', [ActivityLogController::class, 'getLogNames']);
     });
 
     // Rotas de notificações

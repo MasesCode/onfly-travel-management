@@ -72,6 +72,17 @@ const logout = async () => {
                 >
                   Admin
                 </NavLink>
+                <NavLink
+                  v-if="authStore.isAdmin"
+                  to="/admin/logs"
+                  :active="$route.name === 'admin-logs'"
+                  class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out border-b-2 focus:outline-none"
+                  :class="$route.name === 'admin-logs'
+                    ? 'border-white text-white font-semibold'
+                    : 'border-transparent text-white/90 hover:text-white hover:border-white/50 hover:font-semibold'"
+                >
+                  Logs
+                </NavLink>
               </div>
             </div>
 
@@ -190,6 +201,17 @@ const logout = async () => {
                 : 'text-white/90 hover:text-white hover:bg-blue-600 hover:font-semibold'"
             >
               Admin
+            </ResponsiveNavLink>
+            <ResponsiveNavLink
+              v-if="authStore.isAdmin"
+              to="/admin/logs"
+              :active="$route.name === 'admin-logs'"
+              class="block py-2 pl-3 pr-4 text-base font-medium transition duration-150 ease-in-out"
+              :class="$route.name === 'admin-logs'
+                ? 'bg-blue-800 text-white border-l-4 border-white font-semibold'
+                : 'text-white/90 hover:text-white hover:bg-blue-600 hover:font-semibold'"
+            >
+              Logs
             </ResponsiveNavLink>
           </div>
 

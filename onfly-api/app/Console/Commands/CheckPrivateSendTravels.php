@@ -31,7 +31,6 @@ class CheckPrivateSendTravels extends Command
                 'recipient_cpf' => '',
                 'is_private_send' => true,
             ]);
-            // Notificação de viagem removida
         }
 
         return Command::SUCCESS;

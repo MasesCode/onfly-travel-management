@@ -48,28 +48,28 @@ const handleRegister = async () => {
     router.push('/dashboard')
   } catch (error: unknown) {
     console.error('Erro no registro:', error)
-    
+
     // Tratar erros específicos do Laravel
-    const axiosError = error as { 
-      response?: { 
-        status?: number; 
-        data?: { 
-          errors?: Record<string, string[]>; 
-          message?: string 
-        } 
-      }; 
-      code?: string 
+    const axiosError = error as {
+      response?: {
+        status?: number;
+        data?: {
+          errors?: Record<string, string[]>;
+          message?: string
+        }
+      };
+      code?: string
     }
-    
+
     if (axiosError?.response?.status === 422) {
       // Erro de validação (422)
       const errorData = axiosError.response.data
-      
+
       if (errorData?.errors) {
         // Pegar o primeiro erro de validação
         const firstFieldErrors = Object.values(errorData.errors)[0] as string[]
         const errorMessage = firstFieldErrors[0]
-        
+
         // Traduzir mensagem específica do email
         if (errorMessage.includes('The email has already been taken')) {
           showError('Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.')
