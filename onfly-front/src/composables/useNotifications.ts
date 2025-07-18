@@ -1,12 +1,16 @@
 import { ref } from 'vue';
+import { ErrorHandler, type ValidationError } from '@/services/ErrorHandler';
 
-interface Notification {
+export interface Notification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
-  message: string;
+  message?: string;
+  validationErrors?: ValidationError[];
   duration?: number;
 }
+
+export type { ValidationError };
 
 const notifications = ref<Notification[]>([]);
 
@@ -42,24 +46,17 @@ export function useNotifications() {
   };
 
   const showError = (error: unknown, title = 'Erro') => {
-    let message = 'Ocorreu um erro inesperado';
+    const { message, validationErrors } = ErrorHandler.handleError(error);
 
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      if (axiosError.response?.data?.message) {
-        message = axiosError.response.data.message;
-      }
-    } else if (error && typeof error === 'object' && 'message' in error) {
-      const errorWithMessage = error as { message: string };
-      message = errorWithMessage.message;
-    } else if (typeof error === 'string') {
-      message = error;
-    }
+    // Duração maior para mensagens de erro para dar tempo de ler
+    const duration = message.length > 50 || validationErrors.length > 0 ? 8000 : 6000;
 
     return addNotification({
       type: 'error',
       title,
-      message
+      message,
+      validationErrors,
+      duration
     });
   };
 

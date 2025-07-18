@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import AppInitializer from '@/components/AppInitializer.vue'
 </script>
 
 <template>
-  <RouterView />
+  <AppInitializer />
 </template>
 
 <style scoped>

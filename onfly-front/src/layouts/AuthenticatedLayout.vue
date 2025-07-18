@@ -7,6 +7,7 @@ import DropdownLink from '@/components/DropdownLink.vue'
 import NavLink from '@/components/NavLink.vue'
 import ResponsiveNavLink from '@/components/ResponsiveNavLink.vue'
 import NotificationToast from '@/components/NotificationToast.vue'
+import NotificationIcon from '@/components/NotificationIcon.vue'
 
 const showingNavigationDropdown = ref(false)
 const router = useRouter()
@@ -51,14 +52,14 @@ const logout = async () => {
                   Dashboard
                 </NavLink>
                 <NavLink
-                  to="/reports"
-                  :active="$route.name === 'reports'"
+                  to="/orders"
+                  :active="$route.name === 'orders'"
                   class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out border-b-2 focus:outline-none"
-                  :class="$route.name === 'reports'
+                  :class="$route.name === 'orders'
                     ? 'border-white text-white font-semibold'
                     : 'border-transparent text-white/90 hover:text-white hover:border-white/50 hover:font-semibold'"
                 >
-                  Relatórios
+                  Pedidos
                 </NavLink>
                 <NavLink
                   v-if="authStore.isAdmin"
@@ -71,21 +72,13 @@ const logout = async () => {
                 >
                   Admin
                 </NavLink>
-                <NavLink
-                  v-if="authStore.isAdmin"
-                  to="/order-status"
-                  :active="$route.name === 'order-status'"
-                  class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out border-b-2 focus:outline-none"
-                  :class="$route.name === 'order-status'
-                    ? 'border-white text-white font-semibold'
-                    : 'border-transparent text-white/90 hover:text-white hover:border-white/50 hover:font-semibold'"
-                >
-                  Status
-                </NavLink>
               </div>
             </div>
 
-            <div class="hidden sm:ms-6 sm:flex sm:items-center">
+            <div class="hidden space-x-4 sm:ms-6 sm:flex sm:items-center">
+              <!-- Ícone de Notificações -->
+              <NotificationIcon />
+
               <!-- Settings Dropdown -->
               <div class="relative ms-3">
                 <Dropdown align="right" width="48">
@@ -178,14 +171,14 @@ const logout = async () => {
               Dashboard
             </ResponsiveNavLink>
             <ResponsiveNavLink
-              to="/reports"
-              :active="$route.name === 'reports'"
+              to="/orders"
+              :active="$route.name === 'orders'"
               class="block py-2 pl-3 pr-4 text-base font-medium transition duration-150 ease-in-out"
-              :class="$route.name === 'reports'
+              :class="$route.name === 'orders'
                 ? 'bg-blue-800 text-white border-l-4 border-white font-semibold'
                 : 'text-white/90 hover:text-white hover:bg-blue-600 hover:font-semibold'"
             >
-              Relatórios
+              Pedidos
             </ResponsiveNavLink>
             <ResponsiveNavLink
               v-if="authStore.isAdmin"
@@ -197,17 +190,6 @@ const logout = async () => {
                 : 'text-white/90 hover:text-white hover:bg-blue-600 hover:font-semibold'"
             >
               Admin
-            </ResponsiveNavLink>
-            <ResponsiveNavLink
-              v-if="authStore.isAdmin"
-              to="/order-status"
-              :active="$route.name === 'order-status'"
-              class="block py-2 pl-3 pr-4 text-base font-medium transition duration-150 ease-in-out"
-              :class="$route.name === 'order-status'
-                ? 'bg-blue-800 text-white border-l-4 border-white font-semibold'
-                : 'text-white/90 hover:text-white hover:bg-blue-600 hover:font-semibold'"
-            >
-              Status
             </ResponsiveNavLink>
           </div>
 

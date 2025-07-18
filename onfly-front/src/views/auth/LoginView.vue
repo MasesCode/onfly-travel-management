@@ -42,8 +42,8 @@ const submit = async () => {
       <h1 class="text-2xl font-semibold text-gray-900">Entrar</h1>
       <p class="mt-2 text-sm text-gray-600">
         Não tem uma conta?
-        <router-link 
-          to="/register" 
+        <router-link
+          to="/register"
           class="font-medium text-blue-600 hover:text-blue-500 transition duration-150 ease-in-out"
         >
           Criar nova conta
@@ -64,7 +64,6 @@ const submit = async () => {
         <TextInput
           id="email"
           type="email"
-          class="w-full"
           v-model="form.email"
           required
           autofocus
@@ -83,7 +82,6 @@ const submit = async () => {
         <TextInput
           id="password"
           type="password"
-          class="w-full"
           v-model="form.password"
           required
           autocomplete="current-password"

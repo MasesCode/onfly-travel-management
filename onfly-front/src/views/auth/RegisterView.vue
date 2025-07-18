@@ -45,16 +45,16 @@ async function handleRegister() {
       showError(result.message || 'Erro ao criar conta')
     }
   } catch (error: unknown) {
-    const axiosError = error as { 
-      response?: { 
+    const axiosError = error as {
+      response?: {
         status?: number
-        data?: { 
+        data?: {
           errors?: Record<string, string[]>
-          message?: string 
-        } 
-      } 
+          message?: string
+        }
+      }
     }
-    
+
     if (axiosError.response?.status === 422) {
       // Erros de validação
       errors.value = axiosError.response.data?.errors || {}
@@ -75,8 +75,8 @@ async function handleRegister() {
       <h1 class="text-2xl font-semibold text-gray-900">Criar Conta</h1>
       <p class="mt-2 text-sm text-gray-600">
         Já tem uma conta?
-        <router-link 
-          to="/login" 
+        <router-link
+          to="/login"
           class="font-medium text-blue-600 hover:text-blue-500 transition duration-150 ease-in-out"
         >
           Faça login
@@ -95,7 +95,6 @@ async function handleRegister() {
           id="name"
           v-model="form.name"
           type="text"
-          class="w-full"
           required
           autofocus
           autocomplete="name"
@@ -113,7 +112,6 @@ async function handleRegister() {
           id="email"
           v-model="form.email"
           type="email"
-          class="w-full"
           required
           autocomplete="username"
           placeholder="Digite seu email"
@@ -130,7 +128,6 @@ async function handleRegister() {
           id="password"
           v-model="form.password"
           type="password"
-          class="w-full"
           required
           autocomplete="new-password"
           placeholder="Digite sua senha"
@@ -147,7 +144,6 @@ async function handleRegister() {
           id="password_confirmation"
           v-model="form.password_confirmation"
           type="password"
-          class="w-full"
           required
           autocomplete="new-password"
           placeholder="Confirme sua senha"

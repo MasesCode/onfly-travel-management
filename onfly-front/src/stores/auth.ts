@@ -6,8 +6,9 @@ import type { User, LoginCredentials, RegisterData } from '@/types'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('auth_token'))
+  const isInitialized = ref(false)
 
-  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAuthenticated = computed(() => !!token.value && !!user.value && isInitialized.value)
   const isAdmin = computed(() => user.value?.is_admin || false)
 
   async function login(credentials: LoginCredentials) {
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = userData
       token.value = authToken
       localStorage.setItem('auth_token', authToken)
+      isInitialized.value = true
 
       return { success: true }
     } catch (error: unknown) {
@@ -55,17 +57,27 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       token.value = null
       localStorage.removeItem('auth_token')
+      isInitialized.value = true
     }
   }
 
   async function fetchUser() {
-    if (!token.value) return
+    if (!token.value) {
+      isInitialized.value = true
+      return
+    }
 
     try {
       const response = await api.get('/user')
       user.value = response.data
-    } catch {
-      await logout()
+      isInitialized.value = true
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error)
+      // Se falhou ao buscar usuário, limpar token inválido
+      user.value = null
+      token.value = null
+      localStorage.removeItem('auth_token')
+      isInitialized.value = true
     }
   }
 
@@ -96,20 +108,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Inicializar usuário se tem token
-  if (token.value && !user.value) {
-    fetchUser()
+  // Função para inicializar a autenticação
+  async function initialize() {
+    if (token.value && !user.value && !isInitialized.value) {
+      await fetchUser()
+    } else if (!token.value) {
+      isInitialized.value = true
+    }
   }
+
+  // Inicializar na criação do store
+  initialize()
 
   return {
     user,
     token,
     isAuthenticated,
     isAdmin,
+    isInitialized,
     login,
     register,
     logout,
     fetchUser,
+    initialize,
     updateProfile,
     updatePassword
   }

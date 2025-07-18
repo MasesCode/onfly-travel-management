@@ -23,7 +23,6 @@ export interface Order {
   start_date: string
   end_date: string
   status: string
-  notes?: string
   created_at: string
   updated_at: string
 }

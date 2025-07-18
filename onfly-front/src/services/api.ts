@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { useAuthStore } from '@/stores/auth'
 
+// Criar instância do axios
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   headers: {
@@ -10,20 +10,27 @@ const api = axios.create({
   withCredentials: true,
 })
 
+// Interceptor de requisição
 api.interceptors.request.use((config) => {
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
+// Interceptor de resposta
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      const authStore = useAuthStore()
-      authStore.logout()
+      // Token inválido ou expirado
+      localStorage.removeItem('auth_token')
+      
+      // Evitar redirecionamento em loop
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
