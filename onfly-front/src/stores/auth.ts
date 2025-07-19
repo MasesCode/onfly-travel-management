@@ -73,7 +73,6 @@ export const useAuthStore = defineStore('auth', () => {
       isInitialized.value = true
     } catch (error) {
       console.error('Erro ao buscar usuário:', error)
-      // Se falhou ao buscar usuário, limpar token inválido
       user.value = null
       token.value = null
       localStorage.removeItem('auth_token')
@@ -108,7 +107,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Função para inicializar a autenticação
   async function initialize() {
     if (token.value && !user.value && !isInitialized.value) {
       await fetchUser()
@@ -117,7 +115,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Inicializar na criação do store
   initialize()
 
   return {

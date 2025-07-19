@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// View temporária
 </script>
 
 <template>

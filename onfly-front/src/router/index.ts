@@ -45,12 +45,6 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
-      path: '/order-status',
-      name: 'order-status',
-      component: () => import('../views/OrderStatusView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
       path: '/profile',
       name: 'profile',
       component: () => import('../views/ProfileView.vue'),
@@ -59,11 +53,9 @@ const router = createRouter({
   ]
 })
 
-// Guards de navegação
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Aguardar inicialização do auth store
   if (!authStore.isInitialized) {
     await authStore.initialize()
   }

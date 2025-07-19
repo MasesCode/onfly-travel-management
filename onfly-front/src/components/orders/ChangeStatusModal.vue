@@ -48,7 +48,7 @@
             <!-- Content -->
             <div v-if="order" class="space-y-6">
               <!-- Status atual -->
-              <div class="p-4 bg-gray-50 rounded-lg">
+              <div class="p-4 rounded-lg bg-gray-50">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-medium text-gray-700">Status atual:</span>
                   <span
@@ -64,7 +64,7 @@
               </div>
 
               <!-- Aviso sobre regras -->
-              <div class="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div class="p-3 border border-blue-200 rounded-md bg-blue-50">
                 <div class="flex">
                   <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
@@ -79,13 +79,13 @@
 
               <!-- Seleção de novo status -->
               <div>
-                <label for="newStatus" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="newStatus" class="block mb-2 text-sm font-medium text-gray-700">
                   Alterar para:
                 </label>
                 <select
                   id="newStatus"
                   v-model="selectedStatus"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  class="w-full px-3 py-2 text-black transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                 >
                   <option value="">Selecione um status</option>
                   <option 
@@ -96,15 +96,15 @@
                     {{ label }}
                   </option>
                 </select>
-                <span v-if="error" class="text-sm text-red-600 mt-1">{{ error }}</span>
+                <span v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</span>
               </div>
 
               <!-- Botões -->
-              <div class="flex space-x-3 pt-4">
+              <div class="flex pt-4 space-x-3">
                 <button
                   type="button"
                   @click="closeModal"
-                  class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   Cancelar
                 </button>
@@ -112,7 +112,7 @@
                   type="button"
                   @click="changeStatus"
                   :disabled="!selectedStatus || isLoading"
-                  class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="flex-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span v-if="isLoading">Alterando...</span>
                   <span v-else>Alterar Status</span>
@@ -161,7 +161,6 @@ const statusColors: Record<string, string> = {
   'cancelled': 'bg-red-100 text-red-800'
 }
 
-// Determinar quais status estão disponíveis baseado no status atual
 const availableStatuses = computed(() => {
   if (!props.order) return {}
   
@@ -172,13 +171,10 @@ const availableStatuses = computed(() => {
     available.approved = 'Aprovar'
     available.cancelled = 'Cancelar'
   }
-  // Pedidos aprovados não podem ser cancelados
-  // Pedidos cancelados não podem ser alterados
   
   return available
 })
 
-// Alterar status
 const changeStatus = async () => {
   if (!props.order || !selectedStatus.value) return
   
@@ -200,25 +196,21 @@ const changeStatus = async () => {
   }
 }
 
-// Fechar modal
 const closeModal = () => {
   emit('close')
 }
 
-// Reset form
 const resetForm = () => {
   selectedStatus.value = ''
   error.value = ''
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && isVisible.value) {
     closeModal()
   }
 }
 
-// Observar mudanças no prop show
 watch(() => props.show, (newValue) => {
   isVisible.value = newValue
   if (newValue) {

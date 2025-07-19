@@ -28,26 +28,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order-statuses', [OrderStatusController::class, 'store']);
     Route::delete('/order-statuses/{id}', [OrderStatusController::class, 'destroy']);
 
-    // Rotas de usuários (compatibilidade)
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-    // Rotas de admin (para gerenciamento de usuários)
     Route::prefix('admin')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-        // Rotas de logs de atividade (apenas para admin)
         Route::get('/activity-logs', [ActivityLogController::class, 'index']);
         Route::get('/activity-logs/{activity}', [ActivityLogController::class, 'show']);
         Route::get('/activity-logs-names', [ActivityLogController::class, 'getLogNames']);
     });
 
-    // Rotas de notificações
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/unread-count', [NotificationController::class, 'unreadCount']);

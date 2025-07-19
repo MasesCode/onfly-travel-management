@@ -9,11 +9,9 @@ import InputError from '@/components/InputError.vue'
 const authStore = useAuthStore()
 const { showSuccess, showError } = useNotifications()
 
-// Estados
 const isUpdatingProfile = ref(false)
 const isUpdatingPassword = ref(false)
 
-// Formulário de perfil
 const profileForm = reactive({
   name: authStore.user?.name || '',
   email: authStore.user?.email || ''
@@ -21,7 +19,6 @@ const profileForm = reactive({
 
 const profileErrors = ref<Record<string, string[]>>({})
 
-// Formulário de senha
 const passwordForm = reactive({
   current_password: '',
   password: '',
@@ -30,7 +27,6 @@ const passwordForm = reactive({
 
 const passwordErrors = ref<Record<string, string[]>>({})
 
-// Atualizar perfil
 async function updateProfile() {
   if (isUpdatingProfile.value) return
 
@@ -60,7 +56,6 @@ async function updateProfile() {
   }
 }
 
-// Atualizar senha
 async function updatePassword() {
   if (isUpdatingPassword.value) return
 
@@ -76,7 +71,6 @@ async function updatePassword() {
 
     if (result.success) {
       showSuccess(result.message || 'Senha atualizada com sucesso!')
-      // Limpar formulário
       passwordForm.current_password = ''
       passwordForm.password = ''
       passwordForm.password_confirmation = ''
@@ -99,20 +93,20 @@ async function updatePassword() {
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+      <h2 class="text-xl font-semibold leading-tight text-gray-800">
         Meu Perfil
       </h2>
     </template>
 
     <div class="py-12">
-      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+      <div class="mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
 
         <!-- Informações do Perfil -->
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
           <div class="p-6 text-gray-900">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-medium">Informações do Perfil</h3>
-              <div v-if="authStore.user?.is_admin" class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+              <div v-if="authStore.user?.is_admin" class="px-3 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
                 Administrador
               </div>
             </div>
@@ -121,7 +115,7 @@ async function updatePassword() {
               <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <!-- Nome -->
                 <div>
-                  <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="name" class="block mb-2 text-sm font-medium text-gray-700">
                     Nome
                   </label>
                   <TextInput
@@ -137,7 +131,7 @@ async function updatePassword() {
 
                 <!-- Email -->
                 <div>
-                  <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="email" class="block mb-2 text-sm font-medium text-gray-700">
                     Email
                   </label>
                   <TextInput
@@ -155,11 +149,11 @@ async function updatePassword() {
                 <button
                   type="submit"
                   :disabled="isUpdatingProfile"
-                  class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50"
+                  class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   <svg
                     v-if="isUpdatingProfile"
-                    class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                    class="w-4 h-4 mr-3 -ml-1 text-white animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -175,15 +169,15 @@ async function updatePassword() {
         </div>
 
         <!-- Alterar Senha -->
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
           <div class="p-6 text-gray-900">
-            <h3 class="text-lg font-medium mb-6">Alterar Senha</h3>
+            <h3 class="mb-6 text-lg font-medium">Alterar Senha</h3>
 
             <form @submit.prevent="updatePassword" class="space-y-6">
               <div class="grid grid-cols-1 gap-6">
                 <!-- Senha Atual -->
                 <div>
-                  <label for="current_password" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="current_password" class="block mb-2 text-sm font-medium text-gray-700">
                     Senha Atual
                   </label>
                   <TextInput
@@ -198,7 +192,7 @@ async function updatePassword() {
 
                 <!-- Nova Senha -->
                 <div>
-                  <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="password" class="block mb-2 text-sm font-medium text-gray-700">
                     Nova Senha
                   </label>
                   <TextInput
@@ -213,7 +207,7 @@ async function updatePassword() {
 
                 <!-- Confirmar Nova Senha -->
                 <div>
-                  <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="password_confirmation" class="block mb-2 text-sm font-medium text-gray-700">
                     Confirmar Nova Senha
                   </label>
                   <TextInput
@@ -231,11 +225,11 @@ async function updatePassword() {
                 <button
                   type="submit"
                   :disabled="isUpdatingPassword"
-                  class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50"
+                  class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   <svg
                     v-if="isUpdatingPassword"
-                    class="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                    class="w-4 h-4 mr-3 -ml-1 text-white animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -251,9 +245,9 @@ async function updatePassword() {
         </div>
 
         <!-- Informações da Conta -->
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
           <div class="p-6 text-gray-900">
-            <h3 class="text-lg font-medium mb-4">Informações da Conta</h3>
+            <h3 class="mb-4 text-lg font-medium">Informações da Conta</h3>
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Conta criada em</dt>

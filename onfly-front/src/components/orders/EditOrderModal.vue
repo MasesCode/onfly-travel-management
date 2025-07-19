@@ -48,7 +48,7 @@
             <!-- Detalhes do Pedido -->
             <div v-if="order" class="space-y-6">
               <!-- Status atual -->
-              <div class="p-4 bg-gray-50 rounded-lg">
+              <div class="p-4 rounded-lg bg-gray-50">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-medium text-gray-700">Status atual:</span>
                   <span
@@ -67,7 +67,7 @@
               <form @submit.prevent="submitForm" class="space-y-4">
                 <!-- Destino -->
                 <div>
-                  <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">
+                  <label for="destination" class="block mb-1 text-sm font-medium text-gray-700">
                     Destino
                   </label>
                   <input
@@ -76,7 +76,7 @@
                     type="text"
                     required
                     :disabled="!canEdit"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    class="w-full px-3 py-2 text-black placeholder-gray-400 transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Digite o destino da viagem"
                   />
                   <span v-if="errors.destination" class="text-sm text-red-600">{{ errors.destination }}</span>
@@ -84,7 +84,7 @@
 
                 <!-- Data de Início -->
                 <div>
-                  <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">
+                  <label for="start_date" class="block mb-1 text-sm font-medium text-gray-700">
                     Data de Início
                   </label>
                   <input
@@ -93,14 +93,14 @@
                     type="date"
                     required
                     :disabled="!canEdit"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    class="w-full px-3 py-2 text-black transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                   <span v-if="errors.start_date" class="text-sm text-red-600">{{ errors.start_date }}</span>
                 </div>
 
                 <!-- Data de Fim -->
                 <div>
-                  <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">
+                  <label for="end_date" class="block mb-1 text-sm font-medium text-gray-700">
                     Data de Fim
                   </label>
                   <input
@@ -109,20 +109,20 @@
                     type="date"
                     required
                     :disabled="!canEdit"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    class="w-full px-3 py-2 text-black transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                   <span v-if="errors.end_date" class="text-sm text-red-600">{{ errors.end_date }}</span>
                 </div>
 
                 <!-- Status (apenas para admin) -->
                 <div v-if="authStore.isAdmin">
-                  <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+                  <label for="status" class="block mb-1 text-sm font-medium text-gray-700">
                     Status
                   </label>
                   <select
                     id="status"
                     v-model="form.status"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                    class="w-full px-3 py-2 text-black transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                   >
                     <option value="requested">Solicitado</option>
                     <option value="approved" :disabled="props.order?.status === 'cancelled'">Aprovado</option>
@@ -138,7 +138,7 @@
                 </div>
 
                 <!-- Aviso se não pode editar -->
-                <div v-if="!canEdit" class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div v-if="!canEdit" class="p-3 border border-yellow-200 rounded-md bg-yellow-50">
                   <div class="flex">
                     <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
@@ -152,11 +152,11 @@
                 </div>
 
                 <!-- Botões -->
-                <div class="flex space-x-3 pt-4">
+                <div class="flex pt-4 space-x-3">
                   <button
                     type="button"
                     @click="closeModal"
-                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     {{ canEdit ? 'Cancelar' : 'Fechar' }}
                   </button>
@@ -164,7 +164,7 @@
                     v-if="canEdit"
                     type="submit"
                     :disabled="isLoading"
-                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span v-if="isLoading">Salvando...</span>
                     <span v-else>Salvar Alterações</span>
@@ -235,30 +235,22 @@ const statusColors: Record<string, string> = {
   'cancelled': 'bg-red-100 text-red-800'
 }
 
-// Verificar se pode editar
-// Admin pode editar qualquer pedido exceto cancelados
-// Usuário comum só pode editar seus próprios pedidos com status 'requested'
 const canEdit = computed(() => {
   if (!props.order) return false
   
-  // Pedidos cancelados não podem ser editados por ninguém
   if (props.order.status === 'cancelled') return false
   
-  // Admin pode editar qualquer pedido (exceto cancelados)
   if (authStore.isAdmin) return true
   
-  // Usuário comum só pode editar seus próprios pedidos com status 'requested'
   return props.order.status === 'requested' && props.order.user_id === authStore.user?.id
 })
 
-// Converter data para formato YYYY-MM-DD (para input date)
 const formatDateForInput = (dateString: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return date.toISOString().split('T')[0]
 }
 
-// Resetar formulário
 const resetForm = () => {
   if (props.order) {
     form.destination = props.order.destination
@@ -281,7 +273,6 @@ const clearErrors = () => {
   errors.status = ''
 }
 
-// Validar formulário
 const validateForm = (): boolean => {
   clearErrors()
   let isValid = true
@@ -309,7 +300,6 @@ const validateForm = (): boolean => {
   return isValid
 }
 
-// Submeter formulário
 const submitForm = async () => {
   if (!canEdit.value || !validateForm()) return
 
@@ -318,7 +308,6 @@ const submitForm = async () => {
   try {
     const orderData = { ...form }
     
-    // Se o admin alterou o status, fazer chamada específica para alterar status
     if (authStore.isAdmin && form.status !== props.order?.status) {
       await api.patch(`/orders/${props.order?.id}/status`, {
         status: form.status
@@ -331,12 +320,10 @@ const submitForm = async () => {
   }
 }
 
-// Fechar modal
 const closeModal = () => {
   emit('close')
 }
 
-// Formatar data
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('pt-BR', {
@@ -348,14 +335,12 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && isVisible.value) {
     closeModal()
   }
 }
 
-// Observar mudanças no prop show
 watch(() => props.show, (newValue) => {
   isVisible.value = newValue
   if (newValue) {
@@ -363,7 +348,6 @@ watch(() => props.show, (newValue) => {
   }
 }, { immediate: true })
 
-// Observar mudanças no order
 watch(() => props.order, () => {
   if (props.show) {
     resetForm()

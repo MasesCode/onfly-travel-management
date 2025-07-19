@@ -116,7 +116,6 @@ export default defineComponent({
       emit('cancel')
     }
 
-    // Fechar modal com ESC
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && props.isVisible) {
         cancel()

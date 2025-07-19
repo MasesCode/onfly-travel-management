@@ -22,7 +22,6 @@ export function useOrderNotifications() {
   const authStore = useAuthStore()
   const { showSuccess, showError } = useNotifications()
 
-  // Função para verificar mudanças nos pedidos
   const checkOrderStatusChanges = async () => {
     if (!authStore.isAuthenticated) return
 
@@ -33,25 +32,21 @@ export function useOrderNotifications() {
       for (const order of userOrders) {
         const lastStatus = lastCheckedOrders.value.get(order.id)
 
-        // Se é a primeira vez verificando este pedido, apenas armazena o status
         if (!lastStatus) {
           lastCheckedOrders.value.set(order.id, order.status)
           continue
         }
 
-        // Se o status mudou de 'pending' para 'approved' ou 'cancelled'
         if (lastStatus === 'pending' && (order.status === 'approved' || order.status === 'cancelled')) {
           const notification = createOrderNotification(order, order.status)
           orderNotifications.value.unshift(notification)
 
-          // Também mostra toast
           if (order.status === 'approved') {
             showSuccess(`Seu pedido para ${order.destination} foi aprovado!`, 'Pedido Aprovado')
           } else {
             showError(`Seu pedido para ${order.destination} foi cancelado.`, 'Pedido Cancelado')
           }
 
-          // Atualiza o status armazenado
           lastCheckedOrders.value.set(order.id, order.status)
         }
       }
@@ -60,7 +55,6 @@ export function useOrderNotifications() {
     }
   }
 
-  // Cria uma notificação para mudança de status do pedido
   const createOrderNotification = (order: Order, type: 'approved' | 'cancelled'): OrderNotification => {
     const id = `${order.id}-${type}-${Date.now()}`
 
@@ -86,7 +80,6 @@ export function useOrderNotifications() {
     }
   }
 
-  // Marca uma notificação como lida
   const markAsRead = (notificationId: string) => {
     const notification = orderNotifications.value.find(n => n.id === notificationId)
     if (notification) {
@@ -95,7 +88,6 @@ export function useOrderNotifications() {
     }
   }
 
-  // Marca todas as notificações como lidas
   const markAllAsRead = () => {
     orderNotifications.value.forEach(notification => {
       notification.read = true
@@ -103,7 +95,6 @@ export function useOrderNotifications() {
     saveNotificationsToStorage()
   }
 
-  // Remove uma notificação
   const removeNotification = (notificationId: string) => {
     const index = orderNotifications.value.findIndex(n => n.id === notificationId)
     if (index > -1) {
@@ -112,7 +103,6 @@ export function useOrderNotifications() {
     }
   }
 
-  // Salva notificações no localStorage
   const saveNotificationsToStorage = () => {
     const userId = authStore.user?.id
     if (userId) {
@@ -123,7 +113,6 @@ export function useOrderNotifications() {
     }
   }
 
-  // Carrega notificações do localStorage
   const loadNotificationsFromStorage = () => {
     const userId = authStore.user?.id
     if (userId) {
@@ -131,7 +120,6 @@ export function useOrderNotifications() {
       if (stored) {
         try {
           const notifications = JSON.parse(stored) as OrderNotification[]
-          // Manter apenas notificações dos últimos 30 dias
           const thirtyDaysAgo = new Date()
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -145,13 +133,11 @@ export function useOrderNotifications() {
     }
   }
 
-  // Inicializa o sistema de notificações
   const initializeNotifications = async () => {
     if (!authStore.isAuthenticated) return
 
     loadNotificationsFromStorage()
 
-    // Carrega o status inicial dos pedidos
     try {
       const orders = await OrderService.getOrders()
       const userOrders = orders.filter(order => order.user_id === authStore.user?.id)
@@ -163,21 +149,17 @@ export function useOrderNotifications() {
       console.error('Erro ao inicializar notificações:', error)
     }
 
-    // Inicia o polling
     startPolling()
   }
 
-  // Inicia o polling para verificar mudanças
   const startPolling = () => {
     if (pollingInterval) {
       clearInterval(pollingInterval)
     }
 
-    // Verifica a cada 30 segundos
     pollingInterval = window.setInterval(checkOrderStatusChanges, 30000)
   }
 
-  // Para o polling
   const stopPolling = () => {
     if (pollingInterval) {
       clearInterval(pollingInterval)
@@ -185,12 +167,10 @@ export function useOrderNotifications() {
     }
   }
 
-  // Computed para contar notificações não lidas
   const unreadCount = computed(() =>
     orderNotifications.value.filter(n => !n.read).length
   )
 
-  // Lifecycle hooks
   onMounted(() => {
     if (authStore.isAuthenticated) {
       initializeNotifications()

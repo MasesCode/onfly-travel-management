@@ -236,29 +236,25 @@ interface Notification {
   title: string
   message: string
   read: boolean
-  deleted: boolean // Para compatibilidade
+  deleted: boolean
   created_at: string
   order_id?: number
   destination?: string
 }
 
-// Estado local
 const isOpen = ref(false)
 const showConfirmModal = ref(false)
 const notifications = ref<Notification[]>([])
 const loading = ref(false)
 
-// Computed
 const unreadCount = computed(() =>
   notifications.value.filter(n => !n.read && !n.deleted).length
 )
 
-// Filtrar notificações não deletadas para exibição
 const visibleNotifications = computed(() =>
   notifications.value.filter(n => !n.deleted)
 )
 
-// Função para buscar notificações da API
 const initializeNotifications = async () => {
   try {
     loading.value = true
@@ -275,7 +271,6 @@ const initializeNotifications = async () => {
       const apiResponse = await response.json()
       console.log('Dados da API:', apiResponse)
 
-      // Transformar dados da API para o formato esperado pelo frontend
       const transformedNotifications = (apiResponse.data || []).map((notification: any) => ({
         id: notification.id,
         type: notification.type || 'info',
@@ -290,7 +285,6 @@ const initializeNotifications = async () => {
 
       console.log('Notificações transformadas:', transformedNotifications)
 
-      // Remover duplicatas baseadas no ID
       const uniqueNotifications = transformedNotifications.filter((notification: any, index: number, self: any[]) =>
         index === self.findIndex(n => n.id === notification.id)
       )
@@ -309,7 +303,6 @@ const initializeNotifications = async () => {
   }
 }
 
-// Função global para atualizar notificações (pode ser chamada de outros componentes)
 declare global {
   interface Window {
     refreshNotifications: () => Promise<void>
@@ -317,7 +310,6 @@ declare global {
 }
 window.refreshNotifications = initializeNotifications
 
-// Função para salvar notificações no localStorage (backup)
 const saveNotificationsToStorage = (notifications: Notification[]) => {
   try {
     localStorage.setItem('notifications', JSON.stringify(notifications))
@@ -326,7 +318,6 @@ const saveNotificationsToStorage = (notifications: Notification[]) => {
   }
 }
 
-// Função para fechar o dropdown quando ESC for pressionado
 const closeOnEscape = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     if (showConfirmModal.value) {
@@ -337,19 +328,15 @@ const closeOnEscape = (e: KeyboardEvent) => {
   }
 }
 
-// Adicionar/remover event listener para tecla ESC
 onMounted(() => document.addEventListener('keydown', closeOnEscape))
 onUnmounted(() => document.removeEventListener('keydown', closeOnEscape))
 
-// Métodos
 const toggleDropdown = async () => {
-  // Se estiver fechando o dropdown, apenas muda o estado
   if (isOpen.value) {
     isOpen.value = false
     return
   }
 
-  // Se estiver abrindo, busca as notificações da API primeiro
   isOpen.value = true
   await initializeNotifications()
 }
@@ -395,23 +382,19 @@ const markAllRead = async () => {
   }
 }
 
-// Função para limpar todas as notificações (soft delete)
 const clearAllNotifications = () => {
   showConfirmModal.value = true
 }
 
 const confirmClearNotifications = async () => {
-  // Marca todas as notificações como deletadas (soft delete)
   notifications.value.forEach(n => {
     if (!n.deleted) {
       n.deleted = true
     }
   })
 
-  // Salva no localStorage
   saveNotificationsToStorage(notifications.value)
 
-  // Fecha o modal e o dropdown
   showConfirmModal.value = false
   close()
 
@@ -428,7 +411,6 @@ const confirmClearNotifications = async () => {
   }
 }
 
-// Inicializa as notificações ao montar o componente
 onMounted(async () => {
   await initializeNotifications()
 })

@@ -18,20 +18,16 @@ class NotificationSeeder extends Seeder
         $users = User::all();
 
         foreach ($users as $user) {
-            // Criar algumas notificações para cada usuário usando a estrutura correta
             for ($i = 1; $i <= 3; $i++) {
-                // Simular um pedido de viagem
                 $orderId = rand(1, 100);
                 $oldStatus = 'pending';
                 $newStatus = $i % 2 == 0 ? 'approved' : 'cancelled';
 
-                // Criar uma instância fake de order
                 $orderData = (object)[
                     'id' => $orderId,
                     'destination' => ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador'][rand(0, 3)],
                 ];
 
-                // Criar notificação usando notificação direta no banco
                 $user->notifications()->create([
                     'id' => \Illuminate\Support\Str::uuid(),
                     'type' => OrderStatusChanged::class,

@@ -37,7 +37,7 @@
               </h3>
               <button
                 @click="closeModal"
-                class="text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                class="text-gray-400 transition-colors hover:text-gray-600 focus:outline-none"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -63,16 +63,16 @@
               <!-- Informações Principais -->
               <div class="grid grid-cols-1 gap-4">
                 <!-- ID -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <div class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <div class="p-4 rounded-lg bg-gray-50">
+                  <div class="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
                     ID do Usuário
                   </div>
-                  <p class="text-sm font-mono text-gray-900">#{{ user.id }}</p>
+                  <p class="font-mono text-sm text-gray-900">#{{ user.id }}</p>
                 </div>
 
                 <!-- Tipo de Usuário -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <div class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <div class="p-4 rounded-lg bg-gray-50">
+                  <div class="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
                     Tipo de Usuário
                   </div>
                   <div class="flex items-center space-x-2">
@@ -97,16 +97,16 @@
                 </div>
 
                 <!-- Data de Criação -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <div class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <div class="p-4 rounded-lg bg-gray-50">
+                  <div class="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
                     Membro desde
                   </div>
                   <p class="text-sm text-gray-900">{{ formatDate(user.created_at) }}</p>
                 </div>
 
                 <!-- Última Atualização -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <div class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <div class="p-4 rounded-lg bg-gray-50">
+                  <div class="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
                     Última atualização
                   </div>
                   <p class="text-sm text-gray-900">{{ formatDate(user.updated_at) }}</p>
@@ -115,12 +115,12 @@
             </div>
 
             <!-- Botões de Ação -->
-            <div class="flex space-x-3 pt-6 border-t border-gray-200">
+            <div class="flex pt-6 space-x-3 border-t border-gray-200">
               <button
                 @click="editUser"
-                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Editar
@@ -128,17 +128,17 @@
               <button
                 @click="deleteUser"
                 :disabled="user?.id === currentUserId"
-                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 :title="user?.id === currentUserId ? 'Não é possível deletar seu próprio usuário' : 'Deletar usuário'"
               >
-                <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 Deletar
               </button>
               <button
                 @click="closeModal"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                class="px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Fechar
               </button>
@@ -193,7 +193,6 @@ const deleteUser = () => {
   }
 }
 
-// Utility methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('pt-BR', {
@@ -205,7 +204,6 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.isVisible) {
     closeModal()

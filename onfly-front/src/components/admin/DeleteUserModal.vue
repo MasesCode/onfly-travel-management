@@ -106,7 +106,6 @@ const cancel = () => {
   emit('cancel')
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.isVisible) {
     cancel()

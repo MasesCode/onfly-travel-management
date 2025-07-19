@@ -15,12 +15,10 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buscar os status de pedidos
         $statusRequested = OrderStatus::where('name', 'requested')->first();
         $statusApproved = OrderStatus::where('name', 'approved')->first();
         $statusCancelled = OrderStatus::where('name', 'cancelled')->first();
 
-        // Se não existirem, criar os status
         if (!$statusRequested) {
             $statusRequested = OrderStatus::create(['name' => 'requested', 'is_custom' => false]);
         }
@@ -31,7 +29,6 @@ class OrderSeeder extends Seeder
             $statusCancelled = OrderStatus::create(['name' => 'cancelled', 'is_custom' => false]);
         }
 
-        // Buscar ou criar alguns usuários para os pedidos
         $user1 = User::firstOrCreate(
             ['email' => 'joao@example.com'],
             [
@@ -59,10 +56,8 @@ class OrderSeeder extends Seeder
             ]
         );
 
-        // Limpar pedidos existentes (para poder reexecutar o seeder)
         Order::truncate();
 
-        // Criar pedidos de exemplo com datas recentes
         Order::create([
             'user_id' => $user1->id,
             'order_status_id' => $statusRequested->id,

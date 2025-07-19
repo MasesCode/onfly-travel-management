@@ -154,7 +154,6 @@ export class ErrorHandler {
       'regex': `${fieldName} tem formato inválido.`
     };
 
-    // Traduzir mensagens específicas do Laravel
     if (message.includes('The email has already been taken')) {
       return 'Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.';
     }
@@ -193,7 +192,6 @@ export class ErrorHandler {
       return 'Data de volta deve ser igual ou posterior à data de ida.';
     }
 
-    // Fallback: traduzir mensagens comuns do Laravel
     if (message.includes('The destination field is required')) {
       return 'O campo Destino é obrigatório.';
     }

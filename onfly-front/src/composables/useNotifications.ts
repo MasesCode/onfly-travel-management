@@ -21,7 +21,6 @@ export function useNotifications() {
 
     notifications.value.push(newNotification);
 
-    // Auto remove after duration (default 5 seconds)
     const duration = notification.duration || 5000;
     setTimeout(() => {
       removeNotification(id);
@@ -46,7 +45,6 @@ export function useNotifications() {
   };
 
   const showError = (error: unknown, title = 'Erro') => {
-    // Se é uma string, usar diretamente
     if (typeof error === 'string') {
       return addNotification({
         type: 'error',
@@ -56,10 +54,8 @@ export function useNotifications() {
       });
     }
 
-    // Se é um objeto de erro, usar o ErrorHandler
     const { message, validationErrors } = ErrorHandler.handleError(error);
 
-    // Duração maior para mensagens de erro para dar tempo de ler
     const duration = message.length > 50 || validationErrors.length > 0 ? 8000 : 6000;
 
     return addNotification({

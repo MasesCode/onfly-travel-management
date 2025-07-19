@@ -28,7 +28,6 @@ const showDeleteModal = ref(false)
 const selectedOrder = ref<Order | null>(null)
 const deleteLoading = ref(false)
 
-// Paginação
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalOrders = ref(0)
@@ -36,7 +35,6 @@ const perPage = ref(10)
 const fromItem = ref(0)
 const toItem = ref(0)
 
-// Filtros
 const filters = ref({
   status: '',
   destination: '',
@@ -64,7 +62,6 @@ const fetchOrders = async (page: number = 1) => {
       per_page: perPage.value.toString()
     })
 
-    // Adicionar filtros apenas se tiverem valor
     if (filters.value.status) {
       params.append('status', filters.value.status)
     }
@@ -88,8 +85,6 @@ const fetchOrders = async (page: number = 1) => {
     fromItem.value = paginationData.from || 0
     toItem.value = paginationData.to || 0
 
-    // Para manter compatibilidade com o PDF export, vamos buscar todos os pedidos filtrados
-    // apenas quando necessário (na função de exportação)
     allOrders.value = orders.value
   } catch (error) {
     console.error('Erro ao carregar pedidos:', error)
@@ -99,7 +94,6 @@ const fetchOrders = async (page: number = 1) => {
 }
 
 const applyFilters = () => {
-  // Resetar para a primeira página quando aplicar filtros
   currentPage.value = 1
   fetchOrders(1)
 }
@@ -132,7 +126,6 @@ const prevPage = () => {
   }
 }
 
-// Computed para gerar array de páginas para navegação
 const pageNumbers = computed(() => {
   const delta = 2
   const range = []
@@ -175,7 +168,6 @@ const deleteOrder = (order: Order) => {
 
 const handleOrderCreated = async (orderData: { destination: string; start_date: string; end_date: string }) => {
   try {
-    // Converter os campos para os nomes esperados pelo backend
     const backendData = {
       destination: orderData.destination,
       departure_date: orderData.start_date,
@@ -185,7 +177,6 @@ const handleOrderCreated = async (orderData: { destination: string; start_date: 
     await api.post('/orders', backendData)
     showCreateModal.value = false
     await fetchOrders()
-    // Atualizar notificações se necessário
   } catch (error) {
     console.error('Erro ao criar pedido:', error)
   }
@@ -195,7 +186,6 @@ const handleOrderUpdated = async (orderData: { destination: string; start_date: 
   if (!selectedOrder.value) return
 
   try {
-    // Converter os campos para os nomes esperados pelo backend
     const backendData = {
       destination: orderData.destination,
       departure_date: orderData.start_date,
@@ -206,7 +196,6 @@ const handleOrderUpdated = async (orderData: { destination: string; start_date: 
     showEditModal.value = false
     selectedOrder.value = null
     await fetchOrders()
-    // Atualizar notificações se necessário
   } catch (error) {
     console.error('Erro ao atualizar pedido:', error)
   }
@@ -221,7 +210,6 @@ const handleOrderDeleted = async () => {
     showDeleteModal.value = false
     selectedOrder.value = null
     await fetchOrders()
-    // Atualizar notificações se necessário
   } catch (error) {
     console.error('Erro ao excluir pedido:', error)
   } finally {
@@ -232,14 +220,11 @@ const handleOrderDeleted = async () => {
 const exportToPDF = () => {
   const doc = new jsPDF()
 
-  // Configuração da fonte
   doc.setFont('helvetica')
 
-  // Cabeçalho do documento
   doc.setFontSize(20)
   doc.text('Relatório de Pedidos de Viagem', 20, 20)
 
-  // Informações do filtro
   doc.setFontSize(10)
   let yPosition = 40
 
@@ -266,12 +251,10 @@ const exportToPDF = () => {
     yPosition += 5
   }
 
-  // Resumo
   doc.setFontSize(12)
   yPosition += 10
   doc.text(`Total de pedidos: ${orders.value.length}`, 20, yPosition)
 
-  // Tabela com os dados
   const tableData = orders.value.map(order => [
     `#${order.id}`,
     order.destination,
@@ -288,17 +271,16 @@ const exportToPDF = () => {
       cellPadding: 3
     },
     headStyles: {
-      fillColor: [37, 99, 235], // Azul
+      fillColor: [37, 99, 235],
       textColor: 255,
       fontStyle: 'bold'
     },
     alternateRowStyles: {
-      fillColor: [248, 250, 252] // Cinza claro
+      fillColor: [248, 250, 252]
     },
     margin: { top: 20, right: 20, bottom: 20, left: 20 }
   })
 
-  // Rodapé
   const pageCount = doc.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
@@ -316,7 +298,6 @@ const exportToPDF = () => {
     )
   }
 
-  // Download do PDF
   const fileName = `pedidos-viagem-${new Date().toISOString().split('T')[0]}.pdf`
   doc.save(fileName)
 }
@@ -336,7 +317,7 @@ onMounted(async () => {
         <div>
           <button
             @click="showCreateModal = true"
-            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+            class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -351,7 +332,7 @@ onMounted(async () => {
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <!-- Filtros -->
         <div class="mb-6 overflow-hidden bg-white rounded-lg shadow">
-          <div class="px-6 py-4 bg-gray-50 border-b">
+          <div class="px-6 py-4 border-b bg-gray-50">
             <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
           </div>
           <div class="p-6">
@@ -362,7 +343,7 @@ onMounted(async () => {
                   id="status-filter"
                   v-model="filters.status"
                   @change="applyFilters"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option value="">Todos</option>
                   <option value="requested">Solicitado</option>
@@ -379,7 +360,7 @@ onMounted(async () => {
                   @input="applyFilters"
                   type="text"
                   placeholder="Filtrar por destino..."
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
               </div>
 
@@ -390,7 +371,7 @@ onMounted(async () => {
                   v-model="filters.startDate"
                   @change="applyFilters"
                   type="date"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
               </div>
 
@@ -401,16 +382,16 @@ onMounted(async () => {
                   v-model="filters.endDate"
                   @change="applyFilters"
                   type="date"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
               </div>
             </div>
 
-            <div class="flex justify-end space-x-4 mt-4">
+            <div class="flex justify-end mt-4 space-x-4">
               <button
                 @click="exportToPDF"
                 :disabled="orders.length === 0"
-                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150"
+                class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-red-600 border border-transparent rounded-md hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -420,7 +401,7 @@ onMounted(async () => {
 
               <button
                 @click="clearFilters"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
+                class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25"
               >
                 Limpar Filtros
               </button>
@@ -429,7 +410,7 @@ onMounted(async () => {
         </div>
 
         <!-- Resumo dos Resultados -->
-        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-blue-700">
@@ -445,11 +426,11 @@ onMounted(async () => {
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destino</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">ID</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Destino</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Período</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Status</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Ações</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -463,14 +444,14 @@ onMounted(async () => {
                     Nenhum pedido encontrado com os filtros aplicados
                   </td>
                 </tr>
-                <tr v-else v-for="order in orders" :key="order.id" class="hover:bg-gray-50 cursor-pointer" @click="editOrder(order)">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr v-else v-for="order in orders" :key="order.id" class="cursor-pointer hover:bg-gray-50" @click="editOrder(order)">
+                  <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                     #{{ order.id }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                     {{ order.destination }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                     {{ formatDate(order.start_date) }} - {{ formatDate(order.end_date) }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
@@ -481,11 +462,11 @@ onMounted(async () => {
                       {{ statusLabels[order.status] }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                     <div class="flex items-center justify-end space-x-2" @click.stop>
                       <button
                         @click="editOrder(order)"
-                        class="text-blue-600 hover:text-blue-900 p-1"
+                        class="p-1 text-blue-600 hover:text-blue-900"
                         title="Editar"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -494,7 +475,7 @@ onMounted(async () => {
                       </button>
                       <button
                         @click="deleteOrder(order)"
-                        class="text-red-600 hover:text-red-900 p-1"
+                        class="p-1 text-red-600 hover:text-red-900"
                         title="Excluir"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -510,19 +491,19 @@ onMounted(async () => {
         </div>
 
         <!-- Paginação -->
-        <div v-if="totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow mt-4">
-          <div class="flex-1 flex justify-between sm:hidden">
+        <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 mt-4 bg-white border-t border-gray-200 rounded-lg shadow sm:px-6">
+          <div class="flex justify-between flex-1 sm:hidden">
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
             <button
               @click="nextPage"
               :disabled="currentPage === totalPages"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima
             </button>
@@ -535,14 +516,14 @@ onMounted(async () => {
               </p>
             </div>
             <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                 <button
                   @click="prevPage"
                   :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="sr-only">Anterior</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>
@@ -564,7 +545,7 @@ onMounted(async () => {
                   <span
                     v-else
                     :key="`dots-${page}`"
-                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                    class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300"
                   >
                     ...
                   </span>
@@ -573,10 +554,10 @@ onMounted(async () => {
                 <button
                   @click="nextPage"
                   :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="sr-only">Próxima</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>

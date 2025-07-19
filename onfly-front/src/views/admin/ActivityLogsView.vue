@@ -51,7 +51,6 @@ const pagination = ref({
   to: 0
 })
 
-// Filtros
 const filters = ref({
   log_name: '',
   causer_id: '',
@@ -63,7 +62,6 @@ const logNames = ref<string[]>([])
 const selectedLog = ref<ActivityLog | null>(null)
 const showLogModal = ref(false)
 
-// Verificar se o usuário é admin
 const isAdmin = computed(() => authStore.isAdmin)
 
 onMounted(async () => {
@@ -187,28 +185,23 @@ const translateLogType = (logName: string) => {
 
 const translateDescription = (description: string) => {
   const translations: Record<string, string> = {
-    // Pedidos
     'Created order': 'Criou pedido',
     'Updated order': 'Atualizou pedido',
     'Updated order status': 'Alterou status do pedido',
     'Deleted order': 'Excluiu pedido',
 
-    // Usuários
     'Created user': 'Criou usuário',
     'Updated user': 'Atualizou usuário',
     'Deleted user': 'Excluiu usuário',
 
-    // Viagens
     'Created travel': 'Criou viagem',
     'Updated travel': 'Atualizou viagem',
     'Deleted travel': 'Excluiu viagem',
 
-    // Autenticação
     'Login': 'Fez login',
     'Logout': 'Fez logout',
     'Register': 'Se registrou',
 
-    // Variações com minúsculas
     'created order': 'Criou pedido',
     'updated order': 'Atualizou pedido',
     'updated order status': 'Alterou status do pedido',
@@ -257,7 +250,7 @@ const translateSubjectType = (subjectType: string) => {
       <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <!-- Filtros -->
         <div class="mb-6 overflow-hidden bg-white rounded-lg shadow">
-          <div class="px-6 py-4 bg-gray-50 border-b">
+          <div class="px-6 py-4 border-b bg-gray-50">
             <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
           </div>
           <div class="p-6">
@@ -267,7 +260,7 @@ const translateSubjectType = (subjectType: string) => {
                 <select
                   id="log-type-filter"
                   v-model="filters.log_name"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option value="">Todos</option>
                   <option v-for="logName in logNames" :key="logName" :value="logName">
@@ -282,7 +275,7 @@ const translateSubjectType = (subjectType: string) => {
                   id="date-from-filter"
                   v-model="filters.date_from"
                   type="date"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -292,20 +285,20 @@ const translateSubjectType = (subjectType: string) => {
                   id="date-to-filter"
                   v-model="filters.date_to"
                   type="date"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               <div class="flex items-end space-x-4">
                 <button
                   @click="applyFilters"
-                  class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+                  class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25"
                 >
                   Filtrar
                 </button>
                 <button
                   @click="clearFilters"
-                  class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
+                  class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25"
                 >
                   Limpar Filtros
                 </button>
@@ -315,7 +308,7 @@ const translateSubjectType = (subjectType: string) => {
         </div>
 
         <!-- Resumo dos Resultados -->
-        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-blue-700">
@@ -331,18 +324,18 @@ const translateSubjectType = (subjectType: string) => {
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Tipo</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Descrição</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Usuário</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Data</th>
+                  <th class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Ações</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-if="loading">
                   <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                     <div class="inline-flex items-center">
-                      <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg class="w-5 h-5 mr-3 -ml-1 text-gray-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -367,7 +360,7 @@ const translateSubjectType = (subjectType: string) => {
                         {{ translateDescription(log.description) }}
                       </span>
                     </div>
-                    <div v-if="log.subject_type" class="text-xs text-gray-500 mt-1">
+                    <div v-if="log.subject_type" class="mt-1 text-xs text-gray-500">
                       {{ translateSubjectType(log.subject_type) }} #{{ log.subject_id }}
                     </div>
                   </td>
@@ -380,13 +373,13 @@ const translateSubjectType = (subjectType: string) => {
                       Sistema
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                     {{ formatDate(log.created_at) }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                     <button
                       @click="viewLogDetails(log)"
-                      class="text-blue-600 hover:text-blue-900 p-1"
+                      class="p-1 text-blue-600 hover:text-blue-900"
                       title="Ver detalhes"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,19 +395,19 @@ const translateSubjectType = (subjectType: string) => {
         </div>
 
         <!-- Paginação -->
-        <div v-if="pagination.last_page > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow mt-4">
-          <div class="flex-1 flex justify-between sm:hidden">
+        <div v-if="pagination.last_page > 1" class="flex items-center justify-between px-4 py-3 mt-4 bg-white border-t border-gray-200 rounded-lg shadow sm:px-6">
+          <div class="flex justify-between flex-1 sm:hidden">
             <button
               @click="changePage(pagination.current_page - 1)"
               :disabled="pagination.current_page === 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
             <button
               @click="changePage(pagination.current_page + 1)"
               :disabled="pagination.current_page === pagination.last_page"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próximo
             </button>
@@ -427,14 +420,14 @@ const translateSubjectType = (subjectType: string) => {
               </p>
             </div>
             <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                 <button
                   @click="changePage(pagination.current_page - 1)"
                   :disabled="pagination.current_page === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="sr-only">Anterior</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>
@@ -456,10 +449,10 @@ const translateSubjectType = (subjectType: string) => {
                 <button
                   @click="changePage(pagination.current_page + 1)"
                   :disabled="pagination.current_page === pagination.last_page"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span class="sr-only">Próximo</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                   </svg>
                 </button>

@@ -12,7 +12,6 @@ const { showError, showSuccess } = useNotifications()
 
 const isSubmitting = ref(false)
 
-// Formulário de registro
 const form = reactive({
   name: '',
   email: '',
@@ -20,11 +19,9 @@ const form = reactive({
   password_confirmation: ''
 })
 
-// Função de registro
 const handleRegister = async () => {
   if (isSubmitting.value) return
 
-  // Validação básica
   if (!form.name || !form.email || !form.password || !form.password_confirmation) {
     showError('Por favor, preencha todos os campos obrigatórios.')
     return
@@ -49,7 +46,6 @@ const handleRegister = async () => {
   } catch (error: unknown) {
     console.error('Erro no registro:', error)
 
-    // Tratar erros específicos do Laravel
     const axiosError = error as {
       response?: {
         status?: number;
@@ -62,15 +58,12 @@ const handleRegister = async () => {
     }
 
     if (axiosError?.response?.status === 422) {
-      // Erro de validação (422)
       const errorData = axiosError.response.data
 
       if (errorData?.errors) {
-        // Pegar o primeiro erro de validação
         const firstFieldErrors = Object.values(errorData.errors)[0] as string[]
         const errorMessage = firstFieldErrors[0]
 
-        // Traduzir mensagem específica do email
         if (errorMessage.includes('The email has already been taken')) {
           showError('Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.')
         } else if (errorMessage.includes('password confirmation does not match')) {
@@ -86,7 +79,6 @@ const handleRegister = async () => {
         showError('Dados inválidos. Verifique os campos e tente novamente.')
       }
     } else if (axiosError?.response?.data?.message) {
-      // Outras mensagens de erro do servidor
       const message = axiosError.response.data.message
       if (message.includes('email') && (message.includes('taken') || message.includes('exists'))) {
         showError('Este e-mail já está cadastrado no sistema. Tente fazer login ou use outro e-mail.')
@@ -94,13 +86,10 @@ const handleRegister = async () => {
         showError(message)
       }
     } else if (axiosError?.response?.status && axiosError.response.status >= 500) {
-      // Erro interno do servidor
       showError('Erro interno do servidor. Tente novamente em alguns minutos.')
     } else if (axiosError?.code === 'NETWORK_ERROR' || !axiosError?.response) {
-      // Erro de rede
       showError('Erro de conexão. Verifique sua internet e tente novamente.')
     } else {
-      // Erro genérico
       showError('Erro ao criar conta. Verifique os dados e tente novamente.')
     }
   } finally {

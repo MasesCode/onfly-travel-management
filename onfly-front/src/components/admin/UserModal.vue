@@ -49,7 +49,7 @@
             <form @submit.prevent="submitForm" class="space-y-4">
               <!-- Nome -->
               <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="name" class="block mb-1 text-sm font-medium text-gray-700">
                   Nome
                 </label>
                 <input
@@ -57,7 +57,7 @@
                   v-model="form.name"
                   type="text"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  class="w-full px-3 py-2 text-black placeholder-gray-400 transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                   placeholder="Digite o nome completo"
                 />
                 <span v-if="errors.name" class="text-sm text-red-600">{{ errors.name }}</span>
@@ -65,7 +65,7 @@
 
               <!-- Email -->
               <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="email" class="block mb-1 text-sm font-medium text-gray-700">
                   Email
                 </label>
                 <input
@@ -73,7 +73,7 @@
                   v-model="form.email"
                   type="email"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  class="w-full px-3 py-2 text-black placeholder-gray-400 transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                   placeholder="Digite o email"
                 />
                 <span v-if="errors.email" class="text-sm text-red-600">{{ errors.email }}</span>
@@ -81,7 +81,7 @@
 
               <!-- Senha (apenas para criação ou se quiser alterar) -->
               <div v-if="!isEditing || showPasswordFields">
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="password" class="block mb-1 text-sm font-medium text-gray-700">
                   {{ isEditing ? 'Nova Senha' : 'Senha' }}
                 </label>
                 <input
@@ -89,7 +89,7 @@
                   v-model="form.password"
                   type="password"
                   :required="!isEditing"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  class="w-full px-3 py-2 text-black placeholder-gray-400 transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                   placeholder="Digite a senha"
                 />
                 <span v-if="errors.password" class="text-sm text-red-600">{{ errors.password }}</span>
@@ -97,7 +97,7 @@
 
               <!-- Confirmar Senha -->
               <div v-if="(!isEditing || showPasswordFields) && form.password">
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="password_confirmation" class="block mb-1 text-sm font-medium text-gray-700">
                   Confirmar Senha
                 </label>
                 <input
@@ -105,7 +105,7 @@
                   v-model="form.password_confirmation"
                   type="password"
                   :required="!!form.password"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-black placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none transition duration-150 ease-in-out"
+                  class="w-full px-3 py-2 text-black placeholder-gray-400 transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:outline-none"
                   placeholder="Confirme a senha"
                 />
                 <span v-if="errors.password_confirmation" class="text-sm text-red-600">{{ errors.password_confirmation }}</span>
@@ -136,18 +136,18 @@
               </div>
 
               <!-- Botões -->
-              <div class="flex space-x-3 pt-4">
+              <div class="flex pt-4 space-x-3">
                 <button
                   type="button"
                   @click="closeModal"
-                  class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   :disabled="isLoading"
-                  class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="flex-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span v-if="isLoading">Salvando...</span>
                   <span v-else>{{ isEditing ? 'Atualizar' : 'Criar' }}</span>
@@ -213,7 +213,6 @@ const errors = reactive({
   password_confirmation: ''
 })
 
-// Resetar formulário
 const resetForm = () => {
   form.name = ''
   form.email = ''
@@ -231,7 +230,6 @@ const clearErrors = () => {
   errors.password_confirmation = ''
 }
 
-// Validar formulário
 const validateForm = () => {
   clearErrors()
   let isValid = true
@@ -267,7 +265,6 @@ const validateForm = () => {
   return isValid
 }
 
-// Submeter formulário
 const submitForm = async () => {
   if (!validateForm()) return
 
@@ -276,7 +273,6 @@ const submitForm = async () => {
   try {
     const userData = { ...form }
 
-    // Remove campos de senha vazios na edição
     if (isEditing.value && !form.password) {
       userData.password = undefined
       userData.password_confirmation = undefined
@@ -288,19 +284,16 @@ const submitForm = async () => {
   }
 }
 
-// Fechar modal
 const closeModal = () => {
   emit('close')
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.isVisible) {
     closeModal()
   }
 }
 
-// Observar mudanças no prop user
 watch(() => props.user, (newUser) => {
   if (newUser) {
     isEditing.value = true
@@ -316,10 +309,9 @@ watch(() => props.user, (newUser) => {
   }
 }, { immediate: true })
 
-// Observar visibilidade do modal
 watch(() => props.isVisible, (visible) => {
   if (!visible) {
-    setTimeout(resetForm, 300) // Aguarda animação terminar
+    setTimeout(resetForm, 300)
   }
 })
 

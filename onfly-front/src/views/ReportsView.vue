@@ -9,7 +9,6 @@ import 'jspdf-autotable'
 
 const reportsStore = useReportsStore()
 
-// Estado local
 const activeTab = ref<'travels' | 'users' | 'metrics'>('travels')
 const filters = ref<ReportFilters>({
   start_date: '',
@@ -18,17 +17,14 @@ const filters = ref<ReportFilters>({
   category: 'all'
 })
 
-// Computed
 const isLoading = computed(() => reportsStore.isLoading)
 const hasError = computed(() => reportsStore.hasError)
 const error = computed(() => reportsStore.error)
 
-// Dados de cada aba
 const travelsData = computed(() => reportsStore.travels)
 const usersData = computed(() => reportsStore.users)
 const metricsData = computed(() => reportsStore.metrics)
 
-// Computed para dados dos gráficos
 const monthlyChartData = computed(() => {
   const trends = metricsData.value?.monthly_trends || []
   return {
@@ -46,7 +42,6 @@ const monthlyChartData = computed(() => {
 const statusChartData = computed(() => {
   if (!metricsData.value) return { labels: [], datasets: [] }
 
-  // Criar dados de status a partir das métricas disponíveis
   const data = [
     { label: 'Ativos', count: metricsData.value.active_travels || 0 },
     { label: 'Pendentes', count: metricsData.value.pending_approvals || 0 },
@@ -58,9 +53,9 @@ const statusChartData = computed(() => {
     datasets: [{
       data: data.map(item => item.count),
       backgroundColor: [
-        'rgba(34, 197, 94, 0.8)',  // Verde para ativos
-        'rgba(251, 191, 36, 0.8)', // Amarelo para pendente
-        'rgba(239, 68, 68, 0.8)'   // Vermelho para outros
+        'rgba(34, 197, 94, 0.8)',
+        'rgba(251, 191, 36, 0.8)',
+        'rgba(239, 68, 68, 0.8)'
       ]
     }]
   }
@@ -78,7 +73,6 @@ const destinationsChartData = computed(() => {
   }
 })
 
-// Opções dos gráficos
 const monthlyChartOptions = {
   responsive: true,
   scales: {
@@ -111,7 +105,6 @@ const destinationsChartOptions = {
   }
 }
 
-// Métodos
 const changeTab = (tab: 'travels' | 'users' | 'metrics') => {
   activeTab.value = tab
   loadTabData()
@@ -149,15 +142,12 @@ const formatCurrency = (value: number) => {
 const exportTravelsPDF = () => {
   const doc = new jsPDF()
   
-  // Título
   doc.setFontSize(20)
   doc.text('Relatório de Pedidos de Viagem', 20, 20)
   
-  // Data do relatório
   doc.setFontSize(12)
   doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 20, 30)
   
-  // Filtros aplicados
   let yPosition = 45
   doc.setFontSize(14)
   doc.text('Filtros Aplicados:', 20, yPosition)
@@ -180,7 +170,6 @@ const exportTravelsPDF = () => {
   
   yPosition += 10
   
-  // Tabela de dados
   const tableData = travelsData.value.map(travel => [
     travel.id,
     travel.user?.name || travel.requester_name,
@@ -207,7 +196,6 @@ const exportTravelsPDF = () => {
     }
   })
   
-  // Resumo
   const finalY = (doc as any).lastAutoTable.finalY + 20
   doc.setFontSize(14)
   doc.text('Resumo:', 20, finalY)
@@ -218,7 +206,6 @@ const exportTravelsPDF = () => {
   doc.text(`Pendentes: ${travelsData.value.filter(t => t.status === 'requested').length}`, 20, finalY + 20)
   doc.text(`Cancelados: ${travelsData.value.filter(t => t.status === 'cancelled').length}`, 20, finalY + 25)
   
-  // Salvar
   const fileName = `relatorio-pedidos-${new Date().toISOString().split('T')[0]}.pdf`
   doc.save(fileName)
 }
@@ -226,15 +213,12 @@ const exportTravelsPDF = () => {
 const exportUsersPDF = () => {
   const doc = new jsPDF()
   
-  // Título
   doc.setFontSize(20)
   doc.text('Relatório de Usuários', 20, 20)
   
-  // Data do relatório
   doc.setFontSize(12)
   doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 20, 30)
   
-  // Tabela de dados
   const tableData = usersData.value.map(user => [
     user.name,
     user.email,
@@ -260,7 +244,6 @@ const exportUsersPDF = () => {
     }
   })
   
-  // Resumo
   const finalY = (doc as any).lastAutoTable.finalY + 20
   doc.setFontSize(14)
   doc.text('Resumo:', 20, finalY)
@@ -275,7 +258,6 @@ const exportUsersPDF = () => {
   doc.text(`Gasto Total: ${formatCurrency(totalSpent)}`, 20, finalY + 20)
   doc.text(`Gasto Médio por Usuário: ${formatCurrency(totalSpent / totalUsers)}`, 20, finalY + 25)
   
-  // Salvar
   const fileName = `relatorio-usuarios-${new Date().toISOString().split('T')[0]}.pdf`
   doc.save(fileName)
 }
@@ -283,15 +265,12 @@ const exportUsersPDF = () => {
 const exportMetricsPDF = () => {
   const doc = new jsPDF()
   
-  // Título
   doc.setFontSize(20)
   doc.text('Relatório de Métricas e KPIs', 20, 20)
   
-  // Data do relatório
   doc.setFontSize(12)
   doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 20, 30)
   
-  // KPIs principais
   let yPos = 50
   doc.setFontSize(16)
   doc.text('Principais Indicadores:', 20, yPos)
@@ -315,7 +294,6 @@ const exportMetricsPDF = () => {
   doc.text(`Pedidos Mês Anterior: ${metricsData.value?.travels_last_month || 0}`, 20, yPos)
   yPos += 20
   
-  // Top destinos
   if (metricsData.value?.top_destinations && metricsData.value.top_destinations.length > 0) {
     doc.setFontSize(16)
     doc.text('Top Destinos:', 20, yPos)
@@ -346,7 +324,6 @@ const exportMetricsPDF = () => {
     yPos = (doc as any).lastAutoTable.finalY + 20
   }
   
-  // Tendência mensal
   if (metricsData.value?.monthly_trends && metricsData.value.monthly_trends.length > 0) {
     doc.setFontSize(16)
     doc.text('Tendência Mensal:', 20, yPos)
@@ -375,12 +352,10 @@ const exportMetricsPDF = () => {
     })
   }
   
-  // Salvar
   const fileName = `relatorio-metricas-${new Date().toISOString().split('T')[0]}.pdf`
   doc.save(fileName)
 }
 
-// Lifecycle
 onMounted(() => {
   loadTabData()
 })
@@ -410,7 +385,7 @@ onMounted(() => {
                 v-if="activeTab === 'travels'"
                 @click="exportTravelsPDF"
                 :disabled="isLoading || travelsData.length === 0"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+                class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -421,7 +396,7 @@ onMounted(() => {
                 v-else-if="activeTab === 'users'"
                 @click="exportUsersPDF"
                 :disabled="isLoading || usersData.length === 0"
-                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150"
+                class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-green-600 border border-transparent rounded-md hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -432,7 +407,7 @@ onMounted(() => {
                 v-else-if="activeTab === 'metrics'"
                 @click="exportMetricsPDF"
                 :disabled="isLoading || !metricsData"
-                class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-900 focus:outline-none focus:border-purple-900 focus:ring ring-purple-300 disabled:opacity-25 transition ease-in-out duration-150"
+                class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 active:bg-purple-900 focus:outline-none focus:border-purple-900 focus:ring ring-purple-300 disabled:opacity-25"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -443,7 +418,7 @@ onMounted(() => {
           </div>
 
           <!-- Error message -->
-          <div v-if="hasError" class="rounded-md bg-red-50 p-4">
+          <div v-if="hasError" class="p-4 rounded-md bg-red-50">
             <div class="flex">
               <div class="ml-3">
                 <h3 class="text-sm font-medium text-red-800">
@@ -466,7 +441,7 @@ onMounted(() => {
 
           <!-- Tabs -->
           <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <nav class="flex -mb-px space-x-8" aria-label="Tabs">
               <button
                 v-for="tab in [
                   { id: 'travels', name: '✈️ Pedidos' },
@@ -488,8 +463,8 @@ onMounted(() => {
           </div>
 
           <!-- Filters -->
-          <div v-if="activeTab === 'travels'" class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+          <div v-if="activeTab === 'travels'" class="p-6 bg-white rounded-lg shadow">
+            <h3 class="mb-4 text-lg font-medium text-gray-900">Filtros</h3>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <!-- Date range -->
@@ -498,7 +473,7 @@ onMounted(() => {
                 <input
                   v-model="filters.start_date"
                   type="date"
-                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -507,7 +482,7 @@ onMounted(() => {
                 <input
                   v-model="filters.end_date"
                   type="date"
-                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -516,7 +491,7 @@ onMounted(() => {
                 <label class="block text-sm font-medium text-gray-700">Status</label>
                 <select
                   v-model="filters.status"
-                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   <option value="all">Todos</option>
                   <option value="requested">Solicitado</option>
@@ -528,7 +503,7 @@ onMounted(() => {
               <div>
                 <button
                   @click="applyFilters"
-                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   :disabled="isLoading"
                 >
                   🔍 Aplicar Filtros
@@ -538,53 +513,53 @@ onMounted(() => {
           </div>
 
           <!-- Loading state -->
-          <div v-if="isLoading" class="text-center py-12">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div v-if="isLoading" class="py-12 text-center">
+            <div class="inline-block w-8 h-8 border-b-2 border-indigo-600 rounded-full animate-spin"></div>
             <p class="mt-2 text-sm text-gray-500">Carregando dados...</p>
           </div>
 
           <!-- Content based on active tab -->
-          <div v-else class="bg-white shadow rounded-lg">
+          <div v-else class="bg-white rounded-lg shadow">
             <!-- Travels Tab -->
             <div v-if="activeTab === 'travels'" class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Relatório de Pedidos de Viagem</h3>
+              <h3 class="mb-4 text-lg font-medium text-gray-900">Relatório de Pedidos de Viagem</h3>
 
               <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                 <table class="min-w-full divide-y divide-gray-300">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Pedido
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Solicitante
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Destino
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Data de Partida
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Status
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Criado em
                       </th>
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
                     <tr v-for="travel in travelsData" :key="travel.id">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         Pedido #{{ travel.id }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ travel.user?.name || travel.requester_name }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ travel.destination }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ new Date(travel.departure_date).toLocaleDateString('pt-BR') }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
@@ -598,7 +573,7 @@ onMounted(() => {
                              travel.status === 'requested' ? 'Solicitado' : 'Cancelado' }}
                         </span>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ new Date(travel.created_at).toLocaleDateString('pt-BR') }}
                       </td>
                     </tr>
@@ -609,44 +584,44 @@ onMounted(() => {
 
             <!-- Users Tab -->
             <div v-else-if="activeTab === 'users'" class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Relatório de Usuários</h3>
+              <h3 class="mb-4 text-lg font-medium text-gray-900">Relatório de Usuários</h3>
 
               <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                 <table class="min-w-full divide-y divide-gray-300">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Nome
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Email
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Viagens
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Total Gasto
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         Última Atividade
                       </th>
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
                     <tr v-for="user in usersData" :key="user.id">
-                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {{ user.name }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ user.email }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ user.total_travels }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         R$ {{ user.total_spent.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                         {{ new Date(user.last_activity).toLocaleDateString('pt-BR') }}
                       </td>
                     </tr>
@@ -657,18 +632,18 @@ onMounted(() => {
 
             <!-- Metrics Tab -->
             <div v-else-if="activeTab === 'metrics'" class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-6">Métricas e KPIs</h3>
+              <h3 class="mb-6 text-lg font-medium text-gray-900">Métricas e KPIs</h3>
 
               <!-- Cards de métricas -->
-              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+              <div class="grid grid-cols-1 gap-5 mb-8 sm:grid-cols-2 lg:grid-cols-4">
                 <!-- Total Travels -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="overflow-hidden bg-white rounded-lg shadow">
                   <div class="p-5">
                     <div class="flex items-center">
                       <div class="flex-shrink-0">
                         <div class="text-2xl">✈️</div>
                       </div>
-                      <div class="ml-5 w-0 flex-1">
+                      <div class="flex-1 w-0 ml-5">
                         <dl>
                           <dt class="text-sm font-medium text-gray-500 truncate">Total de Pedidos</dt>
                           <dd class="text-lg font-medium text-gray-900">{{ metricsData?.total_travels || 0 }}</dd>
@@ -679,13 +654,13 @@ onMounted(() => {
                 </div>
 
                 <!-- Total Expenses -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="overflow-hidden bg-white rounded-lg shadow">
                   <div class="p-5">
                     <div class="flex items-center">
                       <div class="flex-shrink-0">
                         <div class="text-2xl">💰</div>
                       </div>
-                      <div class="ml-5 w-0 flex-1">
+                      <div class="flex-1 w-0 ml-5">
                         <dl>
                           <dt class="text-sm font-medium text-gray-500 truncate">Gasto Estimado</dt>
                           <dd class="text-lg font-medium text-gray-900">
@@ -698,13 +673,13 @@ onMounted(() => {
                 </div>
 
                 <!-- Active Users -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="overflow-hidden bg-white rounded-lg shadow">
                   <div class="p-5">
                     <div class="flex items-center">
                       <div class="flex-shrink-0">
                         <div class="text-2xl">👥</div>
                       </div>
-                      <div class="ml-5 w-0 flex-1">
+                      <div class="flex-1 w-0 ml-5">
                         <dl>
                           <dt class="text-sm font-medium text-gray-500 truncate">Usuários Ativos</dt>
                           <dd class="text-lg font-medium text-gray-900">{{ metricsData?.active_users || 0 }}</dd>
@@ -715,13 +690,13 @@ onMounted(() => {
                 </div>
 
                 <!-- Growth Rate -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="overflow-hidden bg-white rounded-lg shadow">
                   <div class="p-5">
                     <div class="flex items-center">
                       <div class="flex-shrink-0">
                         <div class="text-2xl">📈</div>
                       </div>
-                      <div class="ml-5 w-0 flex-1">
+                      <div class="flex-1 w-0 ml-5">
                         <dl>
                           <dt class="text-sm font-medium text-gray-500 truncate">Média por Pedido</dt>
                           <dd class="text-lg font-medium text-gray-900">
@@ -737,50 +712,50 @@ onMounted(() => {
               <!-- Gráficos -->
               <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <!-- Gráfico de tendência mensal -->
-                <div class="bg-white shadow rounded-lg p-6">
-                  <h4 class="text-lg font-medium text-gray-900 mb-4">Pedidos por Mês</h4>
+                <div class="p-6 bg-white rounded-lg shadow">
+                  <h4 class="mb-4 text-lg font-medium text-gray-900">Pedidos por Mês</h4>
                   <ChartComponent
                     v-if="monthlyChartData.labels.length > 0"
                     type="line"
                     :data="monthlyChartData"
                     :options="monthlyChartOptions"
                   />
-                  <div v-else class="h-64 flex items-center justify-center text-gray-500">
+                  <div v-else class="flex items-center justify-center h-64 text-gray-500">
                     Carregando dados...
                   </div>
                 </div>
 
                 <!-- Gráfico de distribuição por status -->
-                <div class="bg-white shadow rounded-lg p-6">
-                  <h4 class="text-lg font-medium text-gray-900 mb-4">Distribuição por Status</h4>
+                <div class="p-6 bg-white rounded-lg shadow">
+                  <h4 class="mb-4 text-lg font-medium text-gray-900">Distribuição por Status</h4>
                   <ChartComponent
                     v-if="statusChartData.labels.length > 0"
                     type="doughnut"
                     :data="statusChartData"
                     :options="statusChartOptions"
                   />
-                  <div v-else class="h-64 flex items-center justify-center text-gray-500">
+                  <div v-else class="flex items-center justify-center h-64 text-gray-500">
                     Carregando dados...
                   </div>
                 </div>
 
                 <!-- Top destinos -->
-                <div class="bg-white shadow rounded-lg p-6">
-                  <h4 class="text-lg font-medium text-gray-900 mb-4">Top Destinos</h4>
+                <div class="p-6 bg-white rounded-lg shadow">
+                  <h4 class="mb-4 text-lg font-medium text-gray-900">Top Destinos</h4>
                   <ChartComponent
                     v-if="destinationsChartData.labels.length > 0"
                     type="bar"
                     :data="destinationsChartData"
                     :options="destinationsChartOptions"
                   />
-                  <div v-else class="h-64 flex items-center justify-center text-gray-500">
+                  <div v-else class="flex items-center justify-center h-64 text-gray-500">
                     Carregando dados...
                   </div>
                 </div>
 
                 <!-- Estatísticas de aprovação -->
-                <div class="bg-white shadow rounded-lg p-6">
-                  <h4 class="text-lg font-medium text-gray-900 mb-4">Estatísticas Gerais</h4>
+                <div class="p-6 bg-white rounded-lg shadow">
+                  <h4 class="mb-4 text-lg font-medium text-gray-900">Estatísticas Gerais</h4>
                   <div class="space-y-4">
                     <div class="flex justify-between">
                       <span class="text-sm font-medium text-gray-500">Pedidos Ativos</span>

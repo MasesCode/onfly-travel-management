@@ -401,17 +401,14 @@ interface UserFormData {
   is_admin: boolean
 }
 
-// Stores
 const authStore = useAuthStore()
 const { showSuccess, showError } = useNotifications()
 
-// Estado
 const users = ref<User[]>([])
 const loading = ref(true)
 const searchTerm = ref('')
 const filterRole = ref('')
 
-// Modal states
 const showUserModal = ref(false)
 const selectedUser = ref<User | null>(null)
 const showDeleteModal = ref(false)
@@ -420,11 +417,9 @@ const deleteLoading = ref(false)
 const showViewModal = ref(false)
 const userToView = ref<User | null>(null)
 
-// Computed
 const filteredUsers = computed(() => {
   let filtered = users.value
 
-  // Filtrar por termo de busca
   if (searchTerm.value) {
     const term = searchTerm.value.toLowerCase()
     filtered = filtered.filter(user =>
@@ -433,7 +428,6 @@ const filteredUsers = computed(() => {
     )
   }
 
-  // Filtrar por tipo
   if (filterRole.value === 'admin') {
     filtered = filtered.filter(user => user.is_admin)
   } else if (filterRole.value === 'user') {
@@ -443,7 +437,6 @@ const filteredUsers = computed(() => {
   return filtered
 })
 
-// Métodos
 const loadUsers = async () => {
   try {
     loading.value = true
@@ -451,7 +444,6 @@ const loadUsers = async () => {
     const response = await api.get('/admin/users')
     console.log('Resposta da API:', response.data)
 
-    // Verificar se a resposta tem dados paginados
     if (response.data.data) {
       users.value = response.data.data
       console.log('Usuários carregados (paginados):', users.value)
@@ -471,7 +463,6 @@ const refreshUsers = () => {
   loadUsers()
 }
 
-// Modal methods
 const openCreateModal = () => {
   selectedUser.value = null
   showUserModal.value = true
@@ -517,11 +508,9 @@ const handleViewDelete = (user: User) => {
   openDeleteModal(user)
 }
 
-// CRUD operations
 const handleUserSubmit = async (userData: UserFormData) => {
   try {
     if (selectedUser.value) {
-      // Editar usuário
       const response = await api.put(`/admin/users/${selectedUser.value.id}`, userData)
       const updatedUser = response.data.user || response.data
 
@@ -532,7 +521,6 @@ const handleUserSubmit = async (userData: UserFormData) => {
 
       showSuccess('Usuário atualizado com sucesso!')
     } else {
-      // Criar usuário
       const response = await api.post('/admin/users', userData)
       const newUser = response.data.user || response.data
       users.value.unshift(newUser)
@@ -565,7 +553,6 @@ const confirmDelete = async () => {
   }
 }
 
-// Utility methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('pt-BR', {
@@ -577,7 +564,6 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// Lifecycle
 onMounted(() => {
   loadUsers()
 })

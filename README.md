@@ -44,6 +44,13 @@ Este script irá:
 - **Backend API**: http://localhost:8000
 - **Banco de dados**: localhost:3306
 
+### 4. Primeiro Acesso
+Use as credenciais padrão criadas pelos seeders:
+- **Email:** `admin@example.com`
+- **Senha:** `password`
+
+> 💡 **Dica**: Essas credenciais são criadas automaticamente durante o setup!
+
 ### Comandos úteis do Docker
 
 ```bash
@@ -181,6 +188,15 @@ O projeto inclui seeders para popular o banco com dados de exemplo. Execute:
 php artisan db:seed
 ```
 
+### Credenciais de Usuário Padrão
+Após executar os seeders, você pode acessar o sistema com as seguintes credenciais:
+
+**Usuário Administrador:**
+- **Email:** `admin@example.com`
+- **Senha:** `password`
+
+> ⚠️ **Importante**: Em produção, altere essas credenciais padrão por questões de segurança.
+
 ## 🧪 Testes
 
 O projeto inclui testes unitários e de integração desenvolvidos com PHPUnit.
@@ -287,6 +303,12 @@ make setup
 # Opção 2: Script bash direto
 ./setup.sh
 ```
+
+### Acesso ao Sistema
+Após o setup, acesse o sistema com:
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:8000
+- **Credenciais:** admin@example.com / password
 
 ### Comandos do Dia a Dia
 ```bash

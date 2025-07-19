@@ -145,19 +145,16 @@ const cancel = () => {
   emit('close')
 }
 
-// Formatar data
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR')
 }
 
-// Fechar modal com ESC
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && isVisible.value) {
     cancel()
   }
 }
 
-// Observar mudanças no prop show
 watch(() => props.show, (newValue) => {
   isVisible.value = newValue
 }, { immediate: true })
